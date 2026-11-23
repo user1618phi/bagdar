@@ -52,7 +52,7 @@ class BaumWelchTests(unittest.TestCase):
     def test_structure_is_preserved(self):
         data = sample_sequences(TRUTH, students=300, length=8, seed=3)
         fitted, _ = realdata.baum_welch(data, BinaryHMM([0.5, 0.5], [[0.6, 0.4], [0.0, 1.0]], [0.4, 0.7]), iterations=10)
-        self.assertEqual(fitted.transition[1], [0.0, 1.0])  # knowledge never moves backwards
+        self.assertEqual(fitted.transition[1], [0.0, 1.0])
         self.assertAlmostEqual(sum(fitted.prior), 1.0)
         self.assertAlmostEqual(sum(fitted.transition[0]), 1.0)
 
@@ -69,16 +69,16 @@ class ForecastTests(unittest.TestCase):
     def test_first_forecast_is_the_prior_expectation(self):
         forecasts = TRUTH.forecast("skill", [1, 1, 0])
         self.assertAlmostEqual(forecasts[0], 0.6 * 0.2 + 0.4 * 0.9)
-        self.assertGreater(forecasts[1], forecasts[0])  # a correct answer raises the next forecast
+        self.assertGreater(forecasts[1], forecasts[0])
         self.assertEqual(len(forecasts), 3)
 
     def test_auc(self):
-        self.assertAlmostEqual(realdata.auc([(0.1, 0), (0.4, 0), (0.35, 1), (0.8, 1)]), 0.75)  # textbook example
+        self.assertAlmostEqual(realdata.auc([(0.1, 0), (0.4, 0), (0.35, 1), (0.8, 1)]), 0.75)
         self.assertAlmostEqual(realdata.auc([(0.2, 0), (0.9, 1)]), 1.0)
-        self.assertAlmostEqual(realdata.auc([(0.5, 0), (0.5, 1), (0.5, 0), (0.5, 1)]), 0.5)  # ties count half
+        self.assertAlmostEqual(realdata.auc([(0.5, 0), (0.5, 1), (0.5, 0), (0.5, 1)]), 0.5)
 
     def test_degenerate_inputs_do_not_crash(self):
-        self.assertEqual(realdata.auc([(0.3, 1), (0.9, 1)]), 0.5)  # one class: no ranking information
+        self.assertEqual(realdata.auc([(0.3, 1), (0.9, 1)]), 0.5)
         data = {("1", "skill"): [], ("2", "skill"): [1, 0, 1]}
         fitted, history = realdata.baum_welch(data, TRUTH, iterations=2)
         self.assertEqual(len(history), 2)

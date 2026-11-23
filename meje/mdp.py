@@ -24,9 +24,9 @@ Matrix = list[list[float]]
 class MDP:
     states: tuple[str, ...]
     actions: tuple[str, ...]
-    transitions: dict[str, Matrix]  # transitions[a][s][s'] = P(s' | s, a)
-    rewards: dict[str, Vector]  # rewards[a][s] = immediate reward of doing a in s
-    terminal_actions: frozenset[str]  # actions that end the episode
+    transitions: dict[str, Matrix]
+    rewards: dict[str, Vector]
+    terminal_actions: frozenset[str]
     gamma: float
 
     def validate(self) -> None:
@@ -44,11 +44,11 @@ class MDP:
 
 @dataclass(frozen=True)
 class ValueIterationResult:
-    values: Vector  # V*(s)
-    q: dict[str, Vector]  # q[a][s] = Q*(s, a)
-    policy: list[str]  # greedy action per state
+    values: Vector
+    q: dict[str, Vector]
+    policy: list[str]
     iterations: int
-    history: list[tuple[Vector, float]]  # (V after sweep k, Bellman residual of sweep k)
+    history: list[tuple[Vector, float]]
 
 
 def q_value(mdp: MDP, values: Vector, state: int, action: str) -> float:

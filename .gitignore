@@ -10,17 +10,13 @@ node_modules/
 build/
 dist/
 
-# public datasets are downloaded on demand (python -m meje realdata), never committed
 data/
 docs/media/raw/
 
-# generated narration clips (tools/narrate.mjs)
 docs/media/narration/
 
-# intermediate frames of the launch film (tools/brag/render.mjs)
 brag-output/work/
 
-# scratch files of the PDF build (tools/build_docs.mjs)
 docs/.build/
 
 .vercel/

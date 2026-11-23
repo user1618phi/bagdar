@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from meje.server import Handler, build_tutor  # noqa: E402
+from meje.server import Handler, build_tutor
 
 
 class handler(Handler):

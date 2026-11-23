@@ -1,9 +1,6 @@
-// Small DOM helpers. No framework: the whole app is a few pure render functions.
-
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SVG_TAGS = new Set(["svg", "g", "path", "rect", "text", "line", "circle", "title"]);
 
-/** Create an element. Props: class, text, html-free attributes, on<Event> handlers, style object. */
 export function h(tag, props = {}, ...children) {
   const node = SVG_TAGS.has(tag) ? document.createElementNS(SVG_NS, tag) : document.createElement(tag);
   for (const [key, value] of Object.entries(props || {})) {
@@ -40,7 +37,6 @@ export const OBSERVATION_LABEL = {
   wrong_sure: "wrong, sure",
 };
 
-/** A row with a name, a thin bar and a number: the only "chart" the app uses. */
 export function meter(name, value, { kind = "", max = 1, shown = null, chosen = false } = {}) {
   const share = Math.max(0, Math.min(1, value / max));
   return h("div", { class: `meter${chosen ? " chosen" : ""}` },
@@ -49,7 +45,6 @@ export function meter(name, value, { kind = "", max = 1, shown = null, chosen = 
     h("span", { class: "label value num", text: shown ?? fmt.p(value) }));
 }
 
-/** The three-state belief of the HMM as three labelled meters. */
 export function beliefMeters(belief) {
   return STATE_NAMES.map((name, index) => meter(name, belief[index], { kind: name }));
 }

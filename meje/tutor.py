@@ -33,34 +33,24 @@ U, F, M = 0, 1, 2
 class TutorModel:
     """Every tunable number of the tutor, in one place."""
 
-    # P(state) before any evidence: most learners start a topic without knowing it.
     prior: tuple[float, ...] = (0.50, 0.30, 0.20)
 
-    # P(correct | state). Unknown = pure guess on a 4-option question (1/4).
-    # Mastered still slips 8% of the time. Guess + slip < 1 keeps the model identifiable
-    # (van de Sande 2013): a correct answer must always be evidence of knowing more.
     p_correct: tuple[float, ...] = (0.25, 0.65, 0.92)
 
-    # P("I'm sure" | state, outcome). Confidence is a second, cheaper signal of knowledge:
-    # a confident correct answer is strong evidence of mastery, a hesitant one is not.
     p_sure_given_correct: tuple[float, ...] = (0.15, 0.45, 0.90)
     p_sure_given_wrong: tuple[float, ...] = (0.20, 0.30, 0.60)
 
-    # P(next state | state, action). Rows: unknown, fragile, mastered.
-    # Explaining helps novices most; retrieval practice is what turns fragile knowledge into
-    # mastery (testing effect, Roediger & Karpicke 2006; rereading is low-utility, Dunlosky 2013).
     transition_explain: tuple[tuple[float, ...], ...] = ((0.35, 0.65, 0.00), (0.00, 0.85, 0.15), (0.00, 0.00, 1.00))
     transition_practice: tuple[tuple[float, ...], ...] = ((0.90, 0.10, 0.00), (0.00, 0.60, 0.40), (0.00, 0.00, 1.00))
 
-    # Rewards are in minutes. Acting costs time; advancing pays off only if the skill is known.
     minutes: tuple[tuple[str, float], ...] = (("explain", 2.0), ("practice", 1.0), ("advance", 0.0))
     reward_advance: tuple[float, ...] = (-15.0, -5.0, 10.0)
     gamma: float = 0.95
 
-    soft_penalty: float = 0.4  # each missing soft prerequisite makes a skill 40% slower
-    checkpoint_minutes: float = 1.0  # every skill needs at least one question to be confirmed
-    max_steps_per_skill: int = 12  # safety valve: never trap the learner on one skill
-    pass_fraction: float = 0.7  # "pass" means at least 70% of the exam questions
+    soft_penalty: float = 0.4
+    checkpoint_minutes: float = 1.0
+    max_steps_per_skill: int = 12
+    pass_fraction: float = 0.7
 
     def minutes_of(self, action: str) -> float:
         return dict(self.minutes)[action]
@@ -133,13 +123,11 @@ class Tutor:
     def __post_init__(self) -> None:
         self.mdp = self.model.build_mdp()
         self.solution = mdp.value_iteration(self.mdp)
-        # Expected minutes until the optimal policy advances, from each true state.
         self.minutes_to_master = mdp.expected_cost_to_finish(self.mdp, self.solution.policy, dict(self.model.minutes))
         self.hard = {sid: s.hard for sid, s in self.pack.skills.items()}
         self.soft = {sid: s.soft for sid, s in self.pack.skills.items()}
         self._advance_threshold = self._find_advance_threshold()
 
-    # ------------------------------------------------------------------ HMM
 
     def steps_for(self, events: list[Event]) -> list[hmm.Step]:
         """Translate the events of one skill into HMM steps (advance carries no information)."""
@@ -160,7 +148,6 @@ class Tutor:
         """Predicted probability that the next answer on this skill is correct."""
         return sum(belief[s] * self.model.p_correct[s] for s in range(len(STATES)))
 
-    # ------------------------------------------------------------------ MDP
 
     def action_values(self, belief: hmm.Vector) -> dict[str, float]:
         return mdp.qmdp_values(self.solution.q, belief)
@@ -208,13 +195,11 @@ class Tutor:
                 return m
         return 1.0
 
-    # ------------------------------------------------------------------ A*
 
     def route_problem(self, completed: frozenset[str], targets: frozenset[str], beliefs: dict[str, hmm.Vector]) -> search.RouteProblem:
         base_cost = {sid: self.expected_minutes(sid, beliefs[sid]) for sid in self.pack.skills}
         return search.RouteProblem(self.hard, self.soft, base_cost, completed, targets, self.model.soft_penalty)
 
-    # ------------------------------------------------------------------ session
 
     def clean(self, history: list) -> tuple[list[Event], int]:
         """Keep only well-formed events; malformed input is ignored, never fatal.
@@ -266,7 +251,6 @@ class Tutor:
         if unseen:
             return min(unseen, key=lambda i: (abs(i.level - target_level), i.level, i.id))
         last_seen = {e.item: n for n, e in enumerate(seen)}
-        # an item counts as wrong only while its latest attempt was wrong: once answered right it rejoins the rotation
         still_wrong = {e.item: e.choice != self.pack.items[e.item].answer for e in seen}
         previous = seen[-1].item if len(items) > 1 else None
         candidates = [i for i in items if i.id != previous]
@@ -320,8 +304,8 @@ class Tutor:
                 events.append(auto)
                 appended.append(auto)
                 if current == pin:
-                    pin = None  # the pinned skill is done; a pin on another skill still stands
-                lesson = False  # a request for the lesson was about the skill that has just been left
+                    pin = None
+                lesson = False
                 continue
             break
 
@@ -379,7 +363,7 @@ class Tutor:
             return skill is not None and skill not in completed and self.hard[skill] <= completed
 
         last = next((e.skill for e in reversed(events) if e.action != "advance"), None)
-        focus = pin if available(pin) else last  # a pin that is still locked does not cancel the skill in progress
+        focus = pin if available(pin) else last
         if not available(focus):
             return self._coherent(problem, order, keep_first=False), 0.0
         if order and order[0] == focus:
@@ -390,7 +374,7 @@ class Tutor:
         rest = search.plan_route(rest_problem, log_limit=0)
         detour = first_cost + rest.cost - plan.cost
         if detour < 1e-9:
-            detour = 0.0  # equal up to rounding: not a detour
+            detour = 0.0
         if focus == pin or detour == 0.0:
             return self._coherent(problem, [focus] + rest.actions, keep_first=True), detour
         return self._coherent(problem, order, keep_first=False), 0.0
@@ -529,7 +513,7 @@ class Tutor:
         unsure = {"n": 0, "correct": 0}
         forecasts: list[tuple[float, bool]] = []
         ledger: list[dict] = []
-        beliefs: dict[str, hmm.Vector] = {}  # one running belief per skill: a single pass over the history
+        beliefs: dict[str, hmm.Vector] = {}
         for event in events:
             belief = beliefs.get(event.skill, list(self.model.prior))
             if event.action == "practice":
@@ -537,7 +521,7 @@ class Tutor:
                 bucket = sure if event.sure else unsure
                 bucket["n"] += 1
                 bucket["correct"] += int(correct)
-                forecast = self.p_correct(belief)  # made from the belief before this answer
+                forecast = self.p_correct(belief)
                 forecasts.append((forecast, correct))
                 ledger.append({"skill": event.skill, "item": event.item, "forecast": forecast, "correct": correct})
                 belief, _ = hmm.condition(belief, self.model.likelihood(observation_of(correct, bool(event.sure))))

@@ -29,10 +29,8 @@ WEB_DIR = ROOT / "web"
 RESULTS_FILE = ROOT / "docs" / "results.json"
 REAL_RESULTS_FILE = ROOT / "docs" / "results_real.json"
 MAX_BODY_BYTES = 1_000_000
-mimetypes.add_type("font/woff2", ".woff2")  # missing from the table on some systems
+mimetypes.add_type("font/woff2", ".woff2")
 
-# Sent with every response. The page needs no third-party origin at all: scripts, styles and
-# fonts are served from here (fonts inside kit.css are data: URIs), and the API is same-origin.
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
@@ -51,9 +49,9 @@ class Handler(BaseHTTPRequestHandler):
     tutor: Tutor
     server_version = "Meje/1.0"
 
-    timeout = 15  # seconds: a stalled client cannot hold a worker thread forever
+    timeout = 15
 
-    def log_message(self, format: str, *args) -> None:  # keep the console quiet during a demo
+    def log_message(self, format: str, *args) -> None:
         if getattr(self.server, "verbose", False):
             super().log_message(format, *args)
 
@@ -62,7 +60,6 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header(name, value)
         super().end_headers()
 
-    # ---------------------------------------------------------------- routing
 
     def do_GET(self) -> None:
         path = self.path.split("?", 1)[0]
@@ -110,11 +107,10 @@ class Handler(BaseHTTPRequestHandler):
                 pin = body.get("pin") if isinstance(body.get("pin"), str) else None
                 inspect = body.get("inspect") if isinstance(body.get("inspect"), str) else None
                 self._json(self.tutor.replay(targets, history, pin, bool(body.get("lesson")), inspect))
-        except Exception as error:  # never let one bad request take the demo down
+        except Exception as error:
             print(f"error while handling {path}: {error!r}", file=sys.stderr)
             self._json({"error": "The engine could not process this request."}, HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    # ---------------------------------------------------------------- helpers
 
     def _read_json(self) -> dict:
         try:
@@ -146,7 +142,7 @@ class Handler(BaseHTTPRequestHandler):
             target = (WEB_DIR / relative).resolve()
             found = WEB_DIR.resolve() in target.parents and target.is_file()
             data = target.read_bytes() if found else b""
-        except (OSError, ValueError):  # a null byte or an over-long name is just another missing file
+        except (OSError, ValueError):
             found = False
         if not found:
             self._json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
@@ -171,7 +167,7 @@ def _encode(value: object) -> object:
 def make_server(host: str = "127.0.0.1", port: int = 8000, verbose: bool = False) -> ThreadingHTTPServer:
     handler = type("BoundHandler", (Handler,), {"tutor": build_tutor()})
     server = ThreadingHTTPServer((host, port), handler)
-    server.verbose = verbose  # type: ignore[attr-defined]
+    server.verbose = verbose
     return server
 
 

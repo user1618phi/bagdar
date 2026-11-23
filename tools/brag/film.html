@@ -6,11 +6,7 @@
 <link rel="stylesheet" href="../../web/kit.css">
 <link rel="stylesheet" href="../../web/app.css">
 <style>
-  /* A 20-second launch film at 1920x1080. Every frame is a pure function of time: render(t) sets
-     everything from t alone, so frames can be captured one by one (tools/brag/render.mjs).
-     Colours, fonts and components come from the app's own stylesheets. 120 BPM: a beat is 0.5 s,
-     and every cut lands on a beat (3, 6, 10, 14, 17 s). */
-  *, *::before, *::after { transition: none !important; animation: none !important; }  /* time is the only clock */
+  *, *::before, *::after { transition: none !important; animation: none !important; }
   html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
   body { padding: 0; }
   .scene { position: absolute; inset: 0; padding: 0 190px; display: none; flex-direction: column; justify-content: center; }
@@ -119,17 +115,15 @@
 <script>
   const $ = (id) => document.getElementById(id);
   const clamp = (x) => Math.max(0, Math.min(1, x));
-  const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);  // ease-out cubic
+  const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);
   const span = (t, from, to) => clamp((t - from) / (to - from));
   const lerp = (a, b, x) => a + (b - a) * x;
-  /** Entrance: fade and rise, driven only by time. */
   function enter(node, t, at, long = 0.45, shift = 34) {
     const p = ease(span(t, at, at + long));
     node.style.opacity = p;
     node.style.transform = `translateY(${(1 - p) * shift}px)`;
   }
 
-  // ruler ticks for scene 2
   for (let i = 0; i <= 40; i += 1) {
     const tick = document.createElement("i");
     tick.style.left = `${i * 2.5}%`;
@@ -137,7 +131,6 @@
     $("s2r").append(tick);
   }
 
-  // the real skill map: positions and edges come from content/skills.json (injected as window.SKILLS)
   const ROUTE = ["agents", "formulation", "heuristics", "uninformed", "ucs", "astar", "probability", "bayes", "markov", "hmm", "viterbi", "mdp", "bellman"];
   const mapNodes = {};
   function buildMap() {
@@ -179,15 +172,12 @@
       const node = $(id);
       const active = t >= from && t < to;
       node.style.display = active ? "flex" : "none";
-      // dip through the background: the old scene leaves in its last 0.22 s, the new one arrives after the cut
       node.style.opacity = active ? 1 - ease(span(t, to - 0.22, to - 0.02)) * (id === "s6" ? 0 : 1) : 0;
     }
 
-    // 1. hook: the sentence is typed, the question lands on beat 3 (1.5 s)
     $("s1a").textContent = LINE1.slice(0, Math.round(span(t, 0.15, 1.15) * LINE1.length));
     enter($("s1b"), t, 1.5, 0.4);
 
-    // 2. reveal
     enter($("s2tag"), t, 3.05, 0.3, 0);
     enter($("s2a"), t, 3.05);
     $("s2r").style.transform = `scaleX(${ease(span(t, 3.3, 4.2))})`;
@@ -195,7 +185,6 @@
     $("s2m").style.transform = `translateX(${ease(span(t, 3.9, 5.5)) * 0.62 * 1540}px)`;
     enter($("w1"), t, 4.0, 0.3, 16); enter($("w2"), t, 4.5, 0.3, 16); enter($("w3"), t, 5.0, 0.3, 16);
 
-    // 3. locate: a press on "Not sure" at 7.0, then the belief moves
     enter($("s3a"), t, 6.05);
     enter($("s3b"), t, 6.35, 0.35, 20);
     enter($("s3p"), t, 6.2, 0.5, 0);
@@ -210,7 +199,6 @@
       $(`v${i}`).textContent = value.toFixed(2);
     });
 
-    // 4. route: one stop appears every quarter second from 10.5 s
     const shown = Math.max(0, Math.min(ROUTE.length, Math.floor((t - 10.5) / 0.25) + 1));
     ROUTE.forEach((id, index) => {
       const node = mapNodes[id];
@@ -222,7 +210,6 @@
     $("s4n").textContent = String(shown);
     $("s4min").textContent = shown === ROUTE.length ? "about 67 minutes" : "";
 
-    // 5. steer: values grow, the mark lands on the winner at 15.5 s
     enter($("s5why"), t, 16.0, 0.35, 16);
     const grow = ease(span(t, 14.3, 15.3));
     [[3.77, "3.77"], [3.64, "3.64"], [-10.69, "−10.69"]].forEach(([value, text], i) => {
@@ -234,7 +221,6 @@
     $("a0").firstElementChild.innerHTML = `${picked ? '<span class="sq" style="width:14px;height:14px;margin-right:12px"></span>' : ""}lesson`;
     $("s5pick").textContent = picked ? "unknown skill: teach first, then test" : "";
 
-    // 6. outro
     enter($("s6a"), t, 17.05, 0.5);
     enter($("s6b"), t, 17.6, 0.45, 24);
     enter($("s6c"), t, 18.2, 0.35, 12); enter($("s6d"), t, 18.2, 0.35, 12);

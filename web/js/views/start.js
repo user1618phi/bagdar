@@ -1,5 +1,3 @@
-// Start: one question ("where to?"), one primary button.
-
 import { h } from "../ui.js";
 
 export function renderStart(app, actions) {

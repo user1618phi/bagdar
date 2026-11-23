@@ -66,8 +66,8 @@ class ReadinessTests(unittest.TestCase):
             self.assertAlmostEqual(got, want)
 
     def test_pass_probability(self):
-        self.assertAlmostEqual(readiness.pass_probability([0.5, 0.5], 0.5), 0.75)  # at least 1 of 2
-        self.assertAlmostEqual(readiness.pass_probability([0.9, 0.8], 1.0), 0.72)  # both
+        self.assertAlmostEqual(readiness.pass_probability([0.5, 0.5], 0.5), 0.75)
+        self.assertAlmostEqual(readiness.pass_probability([0.9, 0.8], 1.0), 0.72)
         self.assertAlmostEqual(readiness.pass_probability([1.0] * 5, 0.7), 1.0)
         self.assertAlmostEqual(readiness.pass_probability([0.0] * 5, 0.7), 0.0)
         self.assertEqual(readiness.pass_probability([], 0.7), 1.0)
@@ -104,7 +104,7 @@ class DecisionTests(unittest.TestCase):
         for _ in range(2):
             history.append(answer(state, sure=False))
             state = TUTOR.replay(DEFENSE, history)
-        self.assertEqual(state["append"], [])  # not advanced yet
+        self.assertEqual(state["append"], [])
 
     def test_eta_shrinks_and_readiness_grows_as_skills_are_mastered(self):
         start = TUTOR.replay(DEFENSE, [])
@@ -118,7 +118,7 @@ class DecisionTests(unittest.TestCase):
         """Mastering a soft prerequisite elsewhere makes the route through it cheaper."""
         before = TUTOR.replay(["viterbi"], [])
         optional = set(before["route"]["search"]["optional"])
-        self.assertIn("ucs", optional)  # ucs is a soft prerequisite of viterbi
+        self.assertIn("ucs", optional)
 
     def test_replay_is_deterministic(self):
         history, _ = play(["astar"], random.Random(4), p_correct=0.6)
@@ -132,7 +132,7 @@ class LearnerControlTests(unittest.TestCase):
         self.assertGreaterEqual(state["route"]["detour_minutes"], 0.0)
 
     def test_locked_skill_cannot_be_pinned(self):
-        state = TUTOR.replay(DEFENSE, [], pin="astar")  # needs ucs and heuristics first
+        state = TUTOR.replay(DEFENSE, [], pin="astar")
         self.assertNotEqual(state["current"]["skill"], "astar")
 
     def test_learner_can_ask_for_the_lesson(self):
@@ -188,7 +188,7 @@ class RobustnessTests(unittest.TestCase):
             if roll < 0.7:
                 return {"skill": skill, "action": "explain"}
             if roll < 0.9:
-                return {"skill": skill, "action": "advance", "auto": rng.random() < 0.5}  # may be locked or repeated
+                return {"skill": skill, "action": "advance", "auto": rng.random() < 0.5}
             return rng.choice([None, 5, {"skill": skill}])
 
         for _ in range(150):
@@ -228,7 +228,7 @@ class RobustnessTests(unittest.TestCase):
 
     def test_questions_rotate_after_an_early_mistake(self):
         """Found in review: two early wrong answers used to trap the learner on those two questions."""
-        history = [{"skill": "agents", "action": "advance", "auto": True}]  # review mode: no step limit
+        history = [{"skill": "agents", "action": "advance", "auto": True}]
         asked = []
         for turn in range(14):
             state = TUTOR.replay(["formulation"], history, pin="agents")
@@ -240,7 +240,7 @@ class RobustnessTests(unittest.TestCase):
     def test_a_locked_pin_does_not_cancel_the_skill_in_progress(self):
         state = TUTOR.replay(DEFENSE, [])
         first = state["current"]["skill"]
-        state = TUTOR.replay(DEFENSE, [answer(state, correct=False, sure=False)], pin="astar")  # astar is locked
+        state = TUTOR.replay(DEFENSE, [answer(state, correct=False, sure=False)], pin="astar")
         self.assertEqual(state["current"]["skill"], first)
 
     def test_decisions_do_not_depend_on_hash_randomisation(self):

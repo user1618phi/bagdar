@@ -1,6 +1,3 @@
-// Talks to the Python engine. Every call either returns data or throws an Error with a message
-// that can be shown to the learner as it is.
-
 async function request(path, body) {
   let response;
   try {
@@ -13,7 +10,7 @@ async function request(path, body) {
     throw new Error("Can't reach the engine. Check that `python -m meje` is still running.");
   }
   let data = null;
-  try { data = await response.json(); } catch { /* handled below */ }
+  try { data = await response.json(); } catch {}
   if (!response.ok || data === null) {
     throw new Error((data && data.error) || `The engine answered with an error (${response.status}).`);
   }

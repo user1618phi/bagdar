@@ -31,7 +31,6 @@ from .tutor import ACTIONS, STATES, M, Tutor, TutorModel, U, observation_of
 
 Policy = Callable[[list[float], dict], str]
 
-# A learner who breaks the tutor's assumptions: luckier guesses, more slips, slower learning.
 MISMATCHED = replace(
     TutorModel(),
     prior=(0.60, 0.30, 0.10),
@@ -92,9 +91,9 @@ class LogisticLearner:
         return correct, rng.random() < (confidence if correct else 0.1 + 0.4 * confidence)
 
     def learn(self, ability, action: str, rng: random.Random):
-        if action == "explain":  # instruction helps most when little is known
+        if action == "explain":
             gain = 1.1 * self._sigmoid(-ability)
-        else:  # retrieval helps most once there is something to retrieve
+        else:
             gain = 0.25 + 0.55 * self._sigmoid(ability + 0.5) * self._sigmoid(2.0 - ability)
         return ability + max(0.0, rng.gauss(gain, 0.25))
 
@@ -117,23 +116,23 @@ def make_policies(tutor: Tutor) -> dict[str, Policy]:
             return "advance"
         return mdp.greedy_action(tutor.action_values(belief))
 
-    def lookahead(belief, memory):  # ablation: one step of expectimax over the possible answers
+    def lookahead(belief, memory):
         if memory["steps"] >= tutor.model.max_steps_per_skill:
             return "advance"
         return mdp.greedy_action(tutor.lookahead_values(belief, depth=1))
 
-    def streak(belief, memory):  # common mastery heuristic: three correct answers in a row
+    def streak(belief, memory):
         if memory["streak"] >= 3:
             return "advance"
         return "explain" if memory["last_wrong"] else "practice"
 
-    def fixed(belief, memory):  # the same dose for everyone: one lesson, three questions
+    def fixed(belief, memory):
         return ("explain", "practice", "practice", "practice", "advance")[min(memory["steps"], 4)]
 
-    def lesson_only(belief, memory):  # read twice, never tested
+    def lesson_only(belief, memory):
         return "explain" if memory["steps"] < 2 else "advance"
 
-    def oracle(belief, memory):  # upper bound: sees the true state
+    def oracle(belief, memory):
         return tutor.solution.policy[memory["true_state"]]
 
     return {"Meje (HMM + MDP)": meje, "Meje + lookahead": lookahead, "3-in-a-row": streak,
@@ -176,7 +175,7 @@ def run_episode(tutor: Tutor, learner, policy: Policy, rng: random.Random, max_s
 def compare_policies(tutor: Tutor, learner, episodes: int, seed: int) -> list[dict]:
     rows = []
     for name, policy in make_policies(tutor).items():
-        rng = random.Random(seed)  # same seed for every rule; streams diverge once rules act differently (unpaired comparison)
+        rng = random.Random(seed)
         runs = [run_episode(tutor, learner, policy, rng) for _ in range(episodes)]
         n = len(runs)
         rows.append({

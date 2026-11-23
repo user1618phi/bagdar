@@ -23,10 +23,9 @@ class Graph:
             yield f"{state}->{nxt}", nxt, cost
 
 
-# S -> A -> G costs 2 + 6 = 8 (two edges); S -> B -> C -> G costs 1 + 2 + 3 = 6 (three edges).
 GRAPH = {"S": {"A": 2, "B": 1}, "A": {"G": 6}, "B": {"C": 2}, "C": {"G": 3}}
-H = {"S": 5, "A": 6, "B": 5, "C": 3, "G": 0}  # consistent
-MISLEADING = {"S": 5, "A": 1, "B": 5, "C": 5, "G": 0}  # makes greedy walk into the expensive branch
+H = {"S": 5, "A": 6, "B": 5, "C": 3, "G": 0}
+MISLEADING = {"S": 5, "A": 1, "B": 5, "C": 5, "G": 0}
 
 
 def random_route_problem(rng, size):
@@ -104,7 +103,6 @@ class RouteProblemTests(unittest.TestCase):
             while stack:
                 state = stack.pop()
                 for _, nxt, cost in problem.successors(state):
-                    # consistency: h(n) <= c(n, a, n') + h(n')
                     self.assertLessEqual(problem.heuristic(state), cost + problem.heuristic(nxt) + 1e-9)
                     if nxt not in states:
                         states.add(nxt)
@@ -112,7 +110,7 @@ class RouteProblemTests(unittest.TestCase):
             for state in states:
                 rest = search.RouteProblem(problem.hard, problem.soft, problem.base_cost, state, problem.targets, problem.soft_penalty)
                 true_cost = search.uniform_cost_search(rest).cost
-                self.assertLessEqual(problem.heuristic(state), true_cost + 1e-9)  # admissible
+                self.assertLessEqual(problem.heuristic(state), true_cost + 1e-9)
                 if problem.is_goal(state):
                     self.assertEqual(problem.heuristic(state), 0.0)
 
@@ -131,15 +129,15 @@ class RouteProblemTests(unittest.TestCase):
         soft = {"basics": frozenset(), "goal": frozenset({"basics"})}
         targets = frozenset({"goal"})
         cheap = search.RouteProblem(hard, soft, {"basics": 1.0, "goal": 10.0}, frozenset(), targets, 0.4)
-        self.assertEqual(search.plan_route(cheap).actions, ["basics", "goal"])  # 1 + 10 < 14
+        self.assertEqual(search.plan_route(cheap).actions, ["basics", "goal"])
         costly = search.RouteProblem(hard, soft, {"basics": 6.0, "goal": 10.0}, frozenset(), targets, 0.4)
-        self.assertEqual(search.plan_route(costly).actions, ["goal"])  # 14 < 6 + 10
+        self.assertEqual(search.plan_route(costly).actions, ["goal"])
 
     def test_completed_skills_are_not_studied_again(self):
         hard = {"a": frozenset(), "b": frozenset({"a"}), "c": frozenset({"b"})}
         soft = {k: frozenset() for k in hard}
         problem = search.RouteProblem(hard, soft, {"a": 1.0, "b": 1.0, "c": 1.0}, frozenset({"b"}), frozenset({"c"}))
-        self.assertEqual(search.plan_route(problem).actions, ["c"])  # b is done, so a is not needed
+        self.assertEqual(search.plan_route(problem).actions, ["c"])
 
     def test_on_the_course_astar_is_optimal_and_expands_fewer_states_than_ucs(self):
         tutor = Tutor(load_pack())

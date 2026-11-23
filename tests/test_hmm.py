@@ -8,7 +8,6 @@ import unittest
 from meje import hmm
 from meje.tutor import TutorModel
 
-# Umbrella world, Russell & Norvig AIMA 4e, section 14.2. States: rain, no rain.
 T = [[0.7, 0.3], [0.3, 0.7]]
 UMBRELLA = [0.9, 0.2]
 NO_UMBRELLA = [0.1, 0.8]
@@ -42,21 +41,18 @@ def brute_force_evidence(prior, steps):
 
 class FilteringTests(unittest.TestCase):
     def test_umbrella_world_matches_the_textbook(self):
-        # AIMA predicts first and then conditions, so day 0 is a step without evidence.
         steps = [hmm.Step(T), hmm.Step(T, UMBRELLA), hmm.Step(T, UMBRELLA)]
         trace = hmm.forward([0.5, 0.5], steps)
-        self.assertAlmostEqual(trace[1].posterior[0], 0.818, places=3)  # P(R1 | u1)
-        self.assertAlmostEqual(trace[2].posterior[0], 0.883, places=3)  # P(R2 | u1, u2)
+        self.assertAlmostEqual(trace[1].posterior[0], 0.818, places=3)
+        self.assertAlmostEqual(trace[2].posterior[0], 0.883, places=3)
 
     def test_one_step_matches_the_hand_calculation(self):
         model = TutorModel()
         step = hmm.Step(model.transition("practice"), model.likelihood("correct_sure"))
         result = hmm.forward(list(model.prior), [step])[0]
-        # weights 0.5*0.0375, 0.3*0.2925, 0.2*0.828 = 0.01875, 0.08775, 0.1656; sum 0.2721
         self.assertAlmostEqual(result.evidence_probability, 0.2721, places=4)
         for got, want in zip(result.posterior, [0.0689, 0.3225, 0.6086]):
             self.assertAlmostEqual(got, want, places=4)
-        # transition: U keeps 0.9; F = 0.1*U + 0.6*F; M = 0.4*F + M
         for got, want in zip(result.predicted, [0.0620, 0.2004, 0.7376]):
             self.assertAlmostEqual(got, want, places=4)
 
@@ -90,7 +86,7 @@ class FilteringTests(unittest.TestCase):
         self.assertGreater(right.posterior[2], prior[2])
         self.assertLess(wrong.posterior[2], prior[2])
         unsure = hmm.forward(prior, [hmm.Step(model.transition("practice"), model.likelihood("correct_unsure"))])[0]
-        self.assertGreater(right.posterior[2], unsure.posterior[2])  # confidence is evidence too
+        self.assertGreater(right.posterior[2], unsure.posterior[2])
 
     def test_impossible_evidence_is_reported(self):
         with self.assertRaises(ValueError):
@@ -103,7 +99,6 @@ class FilteringTests(unittest.TestCase):
 
 class ViterbiTests(unittest.TestCase):
     def test_umbrella_world_matches_the_textbook(self):
-        # AIMA figure 14.5: umbrella on days 1, 2, 4, 5 -> rain, rain, no rain, rain, rain.
         steps = [hmm.Step(T, e) for e in (UMBRELLA, UMBRELLA, NO_UMBRELLA, UMBRELLA, UMBRELLA)]
         path, _ = hmm.viterbi([0.5, 0.5], steps)
         self.assertEqual(path[:5], [0, 0, 1, 0, 0])
@@ -128,7 +123,7 @@ class ViterbiTests(unittest.TestCase):
         steps = [hmm.Step(model.transition("practice"), model.likelihood(o))
                  for o in ("correct_sure", "wrong_unsure", "correct_sure", "correct_sure")]
         path, _ = hmm.viterbi(list(model.prior), steps)
-        self.assertEqual(path, sorted(path))  # knowledge never moves backwards in this model
+        self.assertEqual(path, sorted(path))
         self.assertEqual(len(path), len(steps) + 1)
 
     def test_no_steps_returns_the_most_likely_prior_state(self):

@@ -40,12 +40,12 @@ class Problem(Protocol):
 @dataclass
 class SearchResult:
     algorithm: str
-    actions: list[str]  # the plan; empty when the start is already a goal
-    cost: float  # total path cost (inf when no plan exists)
-    expanded: int  # nodes taken off the frontier and expanded
-    generated: int  # successor nodes created
+    actions: list[str]
+    cost: float
+    expanded: int
+    generated: int
     max_frontier: int
-    log: list[dict] = field(default_factory=list)  # first expansions, for the explanation UI
+    log: list[dict] = field(default_factory=list)
 
     @property
     def found(self) -> bool:
@@ -66,7 +66,7 @@ def best_first_search(
     A state is re-opened if a cheaper path to it appears, so the search stays correct even
     with an inconsistent heuristic.
     """
-    counter = itertools.count()  # tie-break: deterministic, never compares states
+    counter = itertools.count()
     start = problem.initial
     frontier: list[tuple[float, float, int, State]] = [(priority(0.0, start), 0.0, next(counter), start)]
     best_g: dict[State, float] = {start: 0.0}
@@ -79,7 +79,7 @@ def best_first_search(
         f, neg_g, _, state = heapq.heappop(frontier)
         g = -neg_g if neg_g else 0.0
         if g > best_g.get(state, float("inf")) + 1e-12:
-            continue  # stale entry: a cheaper path to this state was found later
+            continue
         if len(log) < log_limit:
             log.append({"state": state, "g": g, "h": heuristic(state) if heuristic else 0.0, "f": f})
         if problem.is_goal(state):
@@ -93,7 +93,6 @@ def best_first_search(
                 best_g[nxt] = new_g
                 parent[nxt] = (state, action)
                 generated += 1
-                # equal f: prefer the deeper node (larger g) to reach a goal sooner
                 heapq.heappush(frontier, (priority(new_g, nxt), -new_g, next(counter), nxt))
         max_frontier = max(max_frontier, len(frontier))
     return SearchResult(algorithm, [], float("inf"), expanded, generated, max_frontier, log)
@@ -133,7 +132,7 @@ def breadth_first_search(problem: Problem) -> SearchResult:
             parent[nxt] = (state, action)
             cost_to[nxt] = cost_to[state] + step_cost
             generated += 1
-            if problem.is_goal(nxt):  # BFS may test at generation: the first goal found is the shallowest
+            if problem.is_goal(nxt):
                 return SearchResult("BFS", _plan(parent, nxt), cost_to[nxt], expanded, generated, max_frontier)
             frontier.append(nxt)
         max_frontier = max(max_frontier, len(frontier))
@@ -153,19 +152,19 @@ def _plan(parent: dict, state: State) -> list[str]:
 class RouteProblem:
     """Find the cheapest order of skills to study to complete every target skill."""
 
-    hard: dict[str, frozenset[str]]  # skill -> prerequisites that must be completed first
-    soft: dict[str, frozenset[str]]  # skill -> prerequisites that only make it faster
-    base_cost: dict[str, float]  # minutes for a skill when all its soft prerequisites are done
+    hard: dict[str, frozenset[str]]
+    soft: dict[str, frozenset[str]]
+    base_cost: dict[str, float]
     completed: frozenset[str]
     targets: frozenset[str]
     soft_penalty: float = 0.4
 
     def __post_init__(self) -> None:
         self.initial: frozenset[str] = frozenset(self.completed)
-        self.required = self._closure(follow_soft=False)  # must be studied on every route
-        self.relevant = self._closure(follow_soft=True)  # may be worth studying
+        self.required = self._closure(follow_soft=False)
+        self.relevant = self._closure(follow_soft=True)
         self._order = sorted(self.relevant)
-        self._required_order = sorted(self.required)  # a fixed order, so sums of floats do not depend on set hashing
+        self._required_order = sorted(self.required)
 
     def _closure(self, follow_soft: bool) -> frozenset[str]:
         """Skills still to study to reach the targets, walking prerequisite edges backwards."""

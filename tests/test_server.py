@@ -44,7 +44,7 @@ class ServerTests(unittest.TestCase):
         state = json.loads(body)
         self.assertEqual(status, 200)
         self.assertEqual(state["current"]["action"], "practice")
-        self.assertNotIn("answer", state["current"]["item"])  # the key is never sent before answering
+        self.assertNotIn("answer", state["current"]["item"])
         item = state["current"]["item"]["id"]
         event = {"skill": state["current"]["skill"], "action": "practice", "item": item, "choice": 0, "sure": True}
         status, body, _ = self.request("/api/state", {"targets": ["astar"], "history": [event]})
@@ -65,7 +65,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request("/api/nope")[0], 404)
         self.assertEqual(self.request("/api/nope", {})[0], 404)
         status, body, _ = self.request("/api/state", {"targets": "x", "history": {"a": 1}, "pin": 5})
-        self.assertEqual(status, 200)  # wrong types fall back to defaults instead of crashing
+        self.assertEqual(status, 200)
 
     def test_security_headers_are_sent(self):
         request = urllib.request.Request(self.base + "/")
@@ -88,12 +88,12 @@ class ServerTests(unittest.TestCase):
         """Found in review: these used to escape as unhandled exceptions."""
         connection = http.client.HTTPConnection("127.0.0.1", self.server.server_address[1], timeout=10)
         connection.putrequest("POST", "/api/state")
-        connection.putheader("Content-Length", "-1")  # a negative length must not bypass the size limit
+        connection.putheader("Content-Length", "-1")
         connection.endheaders()
         self.assertEqual(connection.getresponse().status, 400)
         connection.close()
-        self.assertEqual(self.request("/api/state", raw=b"[" * 200_000)[0], 400)  # deeply nested JSON
-        self.assertEqual(self.request("/" + "a" * 3000)[0], 404)  # a name too long for the file system
+        self.assertEqual(self.request("/api/state", raw=b"[" * 200_000)[0], 400)
+        self.assertEqual(self.request("/" + "a" * 3000)[0], 404)
         self.assertEqual(self.request("/a%00b")[0], 404)
 
     def test_static_files_and_path_traversal(self):

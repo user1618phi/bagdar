@@ -23,24 +23,22 @@ def toy_mdp(gamma=0.9):
 class ValueIterationTests(unittest.TestCase):
     def test_toy_mdp_matches_the_closed_form(self):
         result = mdp.value_iteration(toy_mdp())
-        v_high = 3.0 / (1 - 0.9)  # work forever in HIGH: 3 + 0.9 * V(high)
-        v_low = (1.0 + 0.9 * 0.5 * v_high) / (1 - 0.9 * 0.5)  # 1 + 0.9 * (0.5 V(low) + 0.5 V(high))
+        v_high = 3.0 / (1 - 0.9)
+        v_low = (1.0 + 0.9 * 0.5 * v_high) / (1 - 0.9 * 0.5)
         self.assertAlmostEqual(result.values[1], v_high, places=6)
         self.assertAlmostEqual(result.values[0], v_low, places=6)
         self.assertEqual(result.policy, ["work", "work"])
 
     def test_one_bellman_update_by_hand(self):
-        # From V = [0, 0]: V1(low) = max(1 + 0, 0 + 0) = 1; V1(high) = max(3, 0) = 3.
         self.assertEqual(mdp.bellman_update(toy_mdp(), [0.0, 0.0]), [1.0, 3.0])
-        # From V = [1, 3]: work in low = 1 + 0.9 * (0.5 * 1 + 0.5 * 3) = 2.8; rest = 0.9 * 1 = 0.9.
         self.assertAlmostEqual(mdp.bellman_update(toy_mdp(), [1.0, 3.0])[0], 2.8)
 
     def test_tutor_mdp_matches_the_closed_form(self):
         model = TutorModel()
         result = mdp.value_iteration(model.build_mdp())
-        v_mastered = 10.0  # advance
-        v_fragile = (-1 + 0.95 * 0.4 * v_mastered) / (1 - 0.95 * 0.6)  # practise until mastered
-        v_unknown = (-2 + 0.95 * 0.65 * v_fragile) / (1 - 0.95 * 0.35)  # explain until fragile
+        v_mastered = 10.0
+        v_fragile = (-1 + 0.95 * 0.4 * v_mastered) / (1 - 0.95 * 0.6)
+        v_unknown = (-2 + 0.95 * 0.65 * v_fragile) / (1 - 0.95 * 0.35)
         for got, want in zip(result.values, [v_unknown, v_fragile, v_mastered]):
             self.assertAlmostEqual(got, want, places=7)
         self.assertEqual(result.policy, ["explain", "practice", "advance"])
@@ -79,7 +77,7 @@ class PolicyTests(unittest.TestCase):
         problem = model.build_mdp()
         policy = mdp.value_iteration(problem).policy
         minutes = mdp.expected_cost_to_finish(problem, policy, dict(model.minutes))
-        fragile = 1 / 0.4  # geometric: each question masters with probability 0.4
+        fragile = 1 / 0.4
         unknown = (2 + 0.65 * fragile) / 0.65
         self.assertAlmostEqual(minutes[2], 0.0)
         self.assertAlmostEqual(minutes[1], fragile, places=8)

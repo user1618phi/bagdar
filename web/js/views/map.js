@@ -1,5 +1,3 @@
-// Map: the prerequisite graph with the learner's position and the planned route.
-
 import { h, fmt, beliefMeters } from "../ui.js";
 
 const COL = 150;

@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Mustafa Kassym" }]
-dependencies = []  # standard library only
+dependencies = []
 
 [project.scripts]
 meje = "meje.__main__:main"

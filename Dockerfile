@@ -1,4 +1,3 @@
-# Meje needs nothing but Python: no packages are installed.
 FROM python:3.12-slim
 WORKDIR /app
 COPY meje ./meje

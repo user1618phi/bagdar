@@ -1,5 +1,3 @@
-// Engine: every number behind the decisions. One tab per algorithm, plus the evidence.
-
 import { h, fmt, table, STATE_NAMES, OBSERVATION_LABEL, ACTION_LABEL } from "../ui.js";
 
 const TABS = [["hmm", "hmm"], ["mdp", "mdp"], ["astar", "a*"], ["evidence", "evidence"]];
@@ -19,8 +17,6 @@ export function renderEngine(app, actions) {
         })))),
     h("div", { class: "sheet", role: "tabpanel" }, sheets[TABS[index][0]](app, actions)));
 }
-
-// ---------------------------------------------------------------- HMM
 
 function hmm(app, actions) {
   const { state, model } = app;
@@ -57,8 +53,6 @@ function hmm(app, actions) {
     h("p", { class: "note", text: "An unknown skill is answered correctly 25% of the time (a guess among four options); a mastered one still slips 8% of the time. Confidence is a second signal: a sure, correct answer is far stronger evidence than a hesitant one." }),
   ];
 }
-
-// ---------------------------------------------------------------- MDP
 
 function mdp(app) {
   const { state, model } = app;
@@ -98,8 +92,6 @@ function mdp(app) {
     "Known limit: QMDP assumes the uncertainty disappears after one step, so it never asks a question only to learn about the learner." }));
   return parts;
 }
-
-// ---------------------------------------------------------------- A*
 
 function astar(app, actions) {
   const { state, ui } = app;
@@ -142,8 +134,6 @@ function astar(app, actions) {
   }
   return parts;
 }
-
-// ---------------------------------------------------------------- evidence
 
 function evidence(app, actions) {
   const data = app.evidence;

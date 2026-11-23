@@ -46,10 +46,10 @@ class Step:
 class FilterStep:
     """Everything the forward algorithm computed for one step (kept for the explanation UI)."""
 
-    prior: Vector  # belief before the step
-    posterior: Vector  # after conditioning on the evidence (equals prior without evidence)
-    predicted: Vector  # after the transition: the belief the next step starts from
-    evidence_probability: float | None  # P(e_t | e_1..t-1), None without evidence
+    prior: Vector
+    posterior: Vector
+    predicted: Vector
+    evidence_probability: float | None
 
 
 def normalize(weights: Vector) -> tuple[Vector, float]:
@@ -125,7 +125,7 @@ def viterbi(prior: Vector, steps: list[Step]) -> tuple[list[int], float]:
     def emit(t: int, state: int) -> float:
         if t < len(steps) and steps[t].likelihood is not None:
             return log(steps[t].likelihood[state])
-        return 0.0  # no evidence: every state explains it equally well
+        return 0.0
 
     delta = [log(prior[s]) + emit(0, s) for s in range(size)]
     back: list[list[int]] = []

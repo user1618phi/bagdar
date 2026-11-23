@@ -142,6 +142,18 @@ Dockerfile       container image: Python only, non-root
 
 The server keeps no session state. The browser owns the history and sends it with each request, so the same history always gives the same decision, and the server stores nothing about a learner.
 
+## Tools
+
+They need Node, `npm i playwright marked`, Google Chrome and ffmpeg. Each starts and stops the app by itself.
+
+```bash
+node tools/e2e.mjs                 # interface check; BASE_URL=https://meje-delta.vercel.app checks the deployed copy
+node tools/build_docs.mjs          # PDFs of the slides and documents
+node tools/narrate.mjs             # narration clips; reads ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID from the environment
+node tools/record_demo.mjs         # the demo film and the screenshots in docs/media
+node tools/brag/render.mjs         # the 20-second launch film
+```
+
 ## Running it for other people
 
 The server is the same one command. It binds to this machine by default; `HOST` and `PORT` (or `--host`, `--port`) change that.

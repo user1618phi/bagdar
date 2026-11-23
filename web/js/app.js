@@ -1,5 +1,3 @@
-// Controller: owns the state, talks to the engine, picks the view.
-
 import { api } from "./api.js";
 import * as storage from "./store.js";
 import { h, mount, toast } from "./ui.js";
@@ -17,14 +15,12 @@ const app = {
   ui: {
     view: "start", phase: "step", selected: null, busy: false, error: null, lessonAsked: false,
     mapSelected: null, engineTab: "hmm", inspect: null, compare: null, eraseArmed: false, choice: null,
-    fresh: true, stepFresh: true,  // play the entrance motion only when a screen or a step is new
+    fresh: true, stepFresh: true,
   },
 };
 
 const root = document.getElementById("view");
 const VIEWS = ["drive", "map", "engine"];
-
-// ---------------------------------------------------------------- engine calls
 
 async function refresh({ lesson = false } = {}) {
   const { store, ui } = app;
@@ -37,7 +33,7 @@ async function refresh({ lesson = false } = {}) {
     if (state.append.length) {
       store.history.push(...state.append);
       const names = state.append.map((event) => skillName(event.skill));
-      if (ui.phase !== "feedback") toast(`checkpoint passed: ${names.join(", ")}`);  // feedback shows it inline
+      if (ui.phase !== "feedback") toast(`checkpoint passed: ${names.join(", ")}`);
       if (state.append.some((event) => event.skill === store.pin)) store.pin = null;
     }
     app.state = state;
@@ -146,8 +142,6 @@ const actions = {
   },
 };
 
-// ---------------------------------------------------------------- routing and rendering
-
 function go(view) {
   const hash = view === "start" ? "#/" : `#/${view}`;
   if (location.hash !== hash) location.hash = hash;
@@ -201,8 +195,6 @@ function errorBlock(message) {
     h("button", { class: "btn", type: "button", text: "Try again", onClick: actions.retry }));
 }
 
-// ---------------------------------------------------------------- theme
-
 function applyTheme() {
   const button = document.getElementById("theme");
   const system = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -220,8 +212,6 @@ document.getElementById("theme").addEventListener("click", () => {
   storage.save(app.store);
   applyTheme();
 });
-
-// ---------------------------------------------------------------- start
 
 window.addEventListener("hashchange", route);
 window.addEventListener("keydown", (event) => {

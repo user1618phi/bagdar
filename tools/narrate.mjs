@@ -1,11 +1,3 @@
-// Generates the narration of the demo video with ElevenLabs text-to-speech, one clip per line of
-// tools/demo_lines.json. The clips and their durations go to docs/media/narration/ (not committed);
-// tools/record_demo.mjs then times the film to the voice and mixes it in.
-//
-//   ELEVENLABS_API_KEY=... ELEVENLABS_VOICE_ID=... node tools/narrate.mjs
-//
-// The key is read from the environment only. Never write it to a file in this repository.
-
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";

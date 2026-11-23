@@ -138,7 +138,6 @@ def baum_welch(sequences: Sequences, model: BinaryHMM, iterations: int = 30, tol
             if n == 0:
                 continue
             start = model.start(skill)
-            # forward pass with scaling: alpha[t][s] = P(X_t = s | answers 1..t)
             alphas, scales = [], []
             current = [start[s] * emit[answers[0]][s] for s in states]
             for t in range(n):
@@ -150,7 +149,6 @@ def baum_welch(sequences: Sequences, model: BinaryHMM, iterations: int = 30, tol
                 alphas.append([value / scale for value in current])
                 scales.append(scale)
                 log_likelihood += math.log(scale)
-            # backward pass, accumulating expected counts
             beta = [1.0] * size
             for t in range(n - 1, -1, -1):
                 alpha = alphas[t]
@@ -197,8 +195,6 @@ def baum_welch(sequences: Sequences, model: BinaryHMM, iterations: int = 30, tol
     return model, history
 
 
-# ---------------------------------------------------------------- evaluation
-
 def auc(pairs: list[tuple[float, int]]) -> float:
     """Area under the ROC curve from ranks (ties get the average rank)."""
     ordered = sorted(pairs)
@@ -212,7 +208,7 @@ def auc(pairs: list[tuple[float, int]]) -> float:
         index = end + 1
     negatives = len(pairs) - positives
     if positives == 0 or negatives == 0:
-        return 0.5  # undefined with one class; 0.5 is "no ranking information"
+        return 0.5
     return (rank_sum - positives * (positives + 1) / 2) / (positives * negatives)
 
 
@@ -258,7 +254,7 @@ def run(path: Path = DEFAULT_CSV, iterations: int = 30) -> dict:
         mean = skill_mean.get(skill, base_rate)
         forecasts, right = [], 0
         for n, answer in enumerate(answers):
-            forecasts.append((mean * 2 + right) / (2 + n))  # the skill mean counts as two earlier answers
+            forecasts.append((mean * 2 + right) / (2 + n))
             right += answer
         return forecasts
 

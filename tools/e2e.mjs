@@ -1,13 +1,3 @@
-// End-to-end check of the interface in a real browser.
-//
-//   node tools/e2e.mjs [screenshot-dir]      (needs: npm i playwright, Google Chrome)
-//   BASE_URL=https://meje-delta.vercel.app node tools/e2e.mjs      the same checks on the deployed copy
-//
-// It starts the app on its own port, walks every screen at five viewport sizes in both themes,
-// and fails on: a console error, horizontal overflow, clipped text, a control covered by the
-// dock, a touch target under 40px, a font that did not load, or a broken flow (answering,
-// lesson, arrival, pinning, persistence after reload, erase, and recovery after the engine stops).
-
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { mkdirSync, readFileSync, readdirSync } from "node:fs";
@@ -20,7 +10,7 @@ const shots = process.argv[2] || null;
 if (shots) mkdirSync(shots, { recursive: true });
 
 const PORT = 8793;
-const REMOTE = process.env.BASE_URL || null;  // check a deployed copy instead of starting a local one
+const REMOTE = process.env.BASE_URL || null;
 const BASE = REMOTE || `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = [[390, 844], [768, 1024], [1024, 768], [1366, 768], [1920, 1080]];
 const failures = [];
@@ -37,13 +27,12 @@ function startServer() {
 }
 async function waitForServer() {
   for (let i = 0; i < 80; i += 1) {
-    try { if ((await fetch(`${BASE}/health`)).ok) return; } catch { /* not up yet */ }
+    try { if ((await fetch(`${BASE}/health`)).ok) return; } catch {}
     await sleep(100);
   }
   throw new Error("the app did not start");
 }
 
-/** Layout rules that must hold on every screen. Returns a list of human-readable problems. */
 async function audit(page, phone) {
   return page.evaluate((isPhone) => {
     const problems = [];
@@ -67,7 +56,6 @@ async function audit(page, phone) {
         if (visible(node) && node.getBoundingClientRect().height < 40) problems.push(`touch target under 40px: ${node.textContent.trim().slice(0, 30)}`);
       }
     }
-    // the heading font is only required on screens that show a heading
     const families = ["Medeo Sans", "Medeo Mono", ...(document.querySelector("main h1, main h2") ? ["Source Serif 4"] : [])];
     for (const family of families) {
       if (!document.fonts.check(`16px "${family}"`)) problems.push(`font not loaded: ${family}`);
@@ -76,7 +64,6 @@ async function audit(page, phone) {
   }, phone);
 }
 
-/** At the end of the page, the floating dock must not cover a button. */
 async function dockClear(page) {
   return page.evaluate(async () => {
     window.scrollTo(0, document.documentElement.scrollHeight);
@@ -85,7 +72,7 @@ async function dockClear(page) {
     if (dock.hidden) return [];
     const d = dock.getBoundingClientRect();
     const covered = [...document.querySelectorAll("main .btn, main .textlink")].filter((node) => {
-      const r = node.getBoundingClientRect();  // a real overlap of the two rectangles, wherever the dock sits
+      const r = node.getBoundingClientRect();
       return r.height > 0 && r.bottom > d.top + 1 && r.top < d.bottom - 1 && r.right > d.left + 1 && r.left < d.right - 1;
     });
     window.scrollTo(0, 0);
@@ -94,7 +81,7 @@ async function dockClear(page) {
 }
 
 async function check(page, name, phone) {
-  await sleep(1000);  // entrance motion has settled
+  await sleep(1000);
   for (const problem of [...await audit(page, phone), ...await dockClear(page)]) failures.push(`${name}: ${problem}`);
   if (shots) await page.screenshot({ path: join(shots, `${name}.png`), fullPage: phone });
 }
@@ -127,7 +114,7 @@ try {
       await page.goto(BASE);
       await page.waitForSelector(".destination");
       await check(page, `${tag}-1-start`, phone);
-      await page.click(".destination >> nth=4");  // "Decisions": a short route, so the session can be finished
+      await page.click(".destination >> nth=4");
       await page.click("text=Plan my route");
       await page.waitForSelector(".option[role=radio]");
       await check(page, `${tag}-2-question`, phone);
@@ -150,7 +137,6 @@ try {
         await check(page, `${tag}-6-engine-${tab}`, phone);
       }
 
-      // persistence: a reload must come back to the same step
       await page.click("#dock a[data-view=drive]");
       await page.waitForSelector(".option[role=radio]");
       const before = await page.locator(".prompt").innerText();
@@ -158,7 +144,6 @@ try {
       await page.waitForSelector(".option[role=radio]");
       if (await page.locator(".prompt").innerText() !== before) failures.push(`${tag}: the step changed after a reload`);
 
-      // keyboard only, to the end of the route
       for (let guard = 0; guard < 60 && !(await page.$(".arrived")); guard += 1) {
         if (await page.$(".lesson")) { await page.click("#continue"); continue; }
         if (await page.$(".verdict")) { await page.keyboard.press("Enter"); await sleep(120); continue; }
@@ -170,7 +155,6 @@ try {
       if (!(await page.$(".arrived"))) failures.push(`${tag}: the route never ended`);
       await check(page, `${tag}-7-arrived`, phone);
 
-      // erase takes two presses and returns to a clean start
       await page.goto(`${BASE}/#/`);
       await page.waitForSelector(".destination");
       await page.click("text=erase progress");
@@ -181,7 +165,6 @@ try {
     }
   }
 
-  // recovery: the engine stops in the middle of a session, then comes back (local runs only)
   if (REMOTE) throw Object.assign(new Error("skip"), { skip: true });
   const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const page = await context.newPage();

@@ -1,13 +1,3 @@
-// Records the demo film and the README screenshots by driving the real app in a real browser.
-//
-//   node tools/record_demo.mjs            (needs: npm i playwright, Google Chrome, ffmpeg)
-//
-// The film is a 1920x1080 stage with three bands that never overlap: a chapter line at the top,
-// the live app in a frame in the middle, and one caption line at the bottom. The app runs in an
-// iframe and is driven for real: every click and every number in the film is the product itself.
-// Lines come from tools/demo_lines.json; if tools/narrate.mjs has produced voice clips, the film
-// is timed to the voice and the clips are mixed in. Any console error fails the run.
-
 import { spawn, spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from "node:fs";
@@ -21,7 +11,7 @@ const { chromium } = require("playwright");
 const PORT = 8791;
 const BASE = `http://127.0.0.1:${PORT}`;
 const SIZE = { width: 1920, height: 1080 };
-const APP = { width: 1344, height: 651, scale: 1728 / 1344 };  // the app's own viewport, shown 1.29x larger
+const APP = { width: 1344, height: 651, scale: 1728 / 1344 };
 const FRAME = { left: 96, top: 120 };
 const media = join(root, "docs", "media");
 const raw = join(media, "raw");
@@ -30,10 +20,9 @@ mkdirSync(raw, { recursive: true });
 const LINES = Object.fromEntries(JSON.parse(readFileSync(join(root, "tools", "demo_lines.json"), "utf8")).map((line) => [line.id, line]));
 const narration = join(media, "narration");
 const VOICE = existsSync(join(narration, "manifest.json")) ? JSON.parse(readFileSync(join(narration, "manifest.json"), "utf8")) : null;
-const TRIM = 0.6;  // seconds cut from the start of the recording (blank page before the stage loads)
-const timeline = [];  // [{ id, at }] in milliseconds from the start of the recording
+const TRIM = 0.6;
+const timeline = [];
 
-// The answer key, so the scripted learner can answer right or wrong on purpose.
 const key = new Map();
 for (const file of readdirSync(join(root, "content")).filter((name) => name.startsWith("part_"))) {
   for (const item of JSON.parse(readFileSync(join(root, "content", file), "utf8")).items) key.set(item.prompt, item.answer);
@@ -86,12 +75,11 @@ let failed = false;
 
 try {
   for (let i = 0; i < 80; i += 1) {
-    try { if ((await fetch(`${BASE}/health`)).ok) break; } catch { /* not up yet */ }
+    try { if ((await fetch(`${BASE}/health`)).ok) break; } catch {}
     await sleep(100);
   }
   browser = await chromium.launch({ channel: "chrome", headless: true });
   const context = await browser.newContext({ viewport: SIZE, colorScheme: "light", recordVideo: { dir: raw, size: SIZE } });
-  // The app forbids being framed (X-Frame-Options, CSP). For the recording only, those two headers are removed in transit.
   await context.route(`${BASE}/**`, async (route) => {
     const response = await route.fetch();
     const headers = { ...response.headers() };
@@ -110,7 +98,6 @@ try {
   await app.locator(".destination").first().waitFor();
   await page.evaluate(() => document.fonts.ready);
 
-  // say() starts a line (caption and voice) and returns at once, so actions happen while it is spoken; rest() waits for its end.
   let lineEnds = 0;
   const say = async (id, silentHold = 4000) => {
     timeline.push({ id, at: Date.now() - started });
@@ -124,7 +111,6 @@ try {
   const rest = async (extra = 0) => { await sleep(Math.max(0, lineEnds - Date.now()) + extra); };
   const quiet = () => page.evaluate(() => { document.getElementById("caption").style.opacity = "0"; });
 
-  /** A full-screen card: a small label, one or two big lines, a small line under them. */
   const card = async (id, { label = "", title, second = "", sub = "" }, hold = 300) => {
     await page.evaluate(([l, t, s2, s]) => {
       const node = document.getElementById("card");
@@ -136,7 +122,6 @@ try {
     await rest(hold);
   };
   const uncard = async () => { await page.evaluate(() => { document.getElementById("card").style.opacity = "0"; }); await sleep(550); };
-  /** The chapter line at the top and the marker on the film's own progress scale. */
   const chapter = (index, title) => page.evaluate(([i, t]) => {
     const node = document.getElementById("chapter");
     node.innerHTML = t;
@@ -160,7 +145,6 @@ try {
     await target.click();
     await sleep(pause);
   };
-  /** Dim everything in the frame except one element, so the viewer knows where to look. */
   const spot = async (selector, pad = 12) => {
     const target = app.locator(selector).first();
     await target.scrollIntoViewIfNeeded();
@@ -181,10 +165,8 @@ try {
     await click(sure ? "#sure" : "#unsure", pause);
     await app.locator("#continue").waitFor();
   };
-  // README screenshots are taken in a second pass (see below): a screenshot during recording disturbs the video frames
   const shot = async () => {};
 
-  // ------------------------------------------------------------------ the film
   await card("hook", { title: "You scored 7 out of 10.", second: "Which 7 did you guess?" }, 500);
   await card("intro", { label: "ai fundamentals · final project · mustafa kassym", title: 'Meje: a <span class="acc">GPS</span> for learning', sub: "where am i · what next · which way" }, 400);
   await shot("01-start");
@@ -214,7 +196,7 @@ try {
 
   await card("q2", { label: "question 2 of 3 · markov decision process", title: 'What should I do <span class="acc">now</span>?' });
   await chapter(2, 'What should I do now? <span class="mono">&nbsp; markov decision process</span>');
-  await click("#continue", 700);  // behind the card: the lesson is on screen when it lifts
+  await click("#continue", 700);
   await uncard();
   await say("decide");
   await spot(".why > section:nth-of-type(2)");
@@ -241,7 +223,7 @@ try {
   await shot("07-map");
   await rest(400);
   await say("detour");
-  await click(".map .node >> nth=19", 700);  // perceptron: unlocked and off the route, so the detour has a price
+  await click(".map .node >> nth=19", 700);
   await click("text=Study this now", 1300);
   await spot(".why > section:nth-of-type(3)");
   await shot("06-progress");
@@ -275,7 +257,6 @@ try {
   if (errors.length) throw new Error(`console errors: ${errors.join(" | ")}`);
   await context.close();
 
-  // ------------------------------------------------------------------ second pass: clean screenshots for the README
   const still = await browser.newContext({ viewport: { width: 1366, height: 768 }, colorScheme: "light" });
   const view = await still.newPage();
   const snap = async (name) => { await sleep(1100); await view.screenshot({ path: join(media, `${name}.png`) }); };
@@ -336,14 +317,12 @@ const target = join(media, "meje-demo.mp4");
 const args = ["-y", "-ss", String(TRIM), "-i", source];
 const video = ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-preset", "slow", "-movflags", "+faststart"];
 if (VOICE) {
-  // each clip is delayed to the moment its line started, then all are mixed into one track
   const filters = timeline.map(({ id, at }, index) => {
     const delay = Math.max(0, Math.round(at - TRIM * 1000));
     args.push("-i", join(narration, `${id}.mp3`));
     return `[${index + 1}:a]adelay=${delay}|${delay}[a${index}]`;
   });
   const mixed = `${timeline.map((_, index) => `[a${index}]`).join("")}amix=inputs=${timeline.length}:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11[voice]`;
-  // a quiet music bed under the voice, synthesised by tools/brag/music.py for the length of the film
   const seconds = Math.ceil(timeline[timeline.length - 1].at / 1000 + VOICE[timeline[timeline.length - 1].id] + 3);
   const bed = join(raw, "bed.wav");
   const made = spawnSync(process.env.PYTHON || "python3", [join(root, "tools", "brag", "music.py"), bed, "--bed", String(seconds)], { stdio: "inherit" });

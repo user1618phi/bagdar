@@ -1,5 +1,3 @@
-// Drive: the journey scale, the current step, and why the tutor chose it.
-
 import { h, fmt, meter, beliefMeters, STATE_NAMES, ACTION_LABEL } from "../ui.js";
 
 const LETTERS = ["a", "b", "c", "d", "e", "f"];
@@ -20,8 +18,6 @@ export function renderDrive(app, actions) {
     journey(app),
     h("div", { class: "cols" }, step, why(app, actions)));
 }
-
-// ---------------------------------------------------------------- journey scale
 
 function journey(app) {
   const { state, pack, store } = app;
@@ -53,7 +49,6 @@ function journey(app) {
       h("span", { text: destination ? destination.name.toLowerCase() : "destination" })));
 }
 
-/** The position marker. It starts where it was on the last render and glides to the new place. */
 function here(app, position) {
   const from = app.ui.lastPosition ?? position;
   const node = h("span", { class: "here", style: { "--at": from.toFixed(4) } });
@@ -61,8 +56,6 @@ function here(app, position) {
   if (from !== position) requestAnimationFrame(() => requestAnimationFrame(() => node.style.setProperty("--at", position.toFixed(4))));
   return node;
 }
-
-// ---------------------------------------------------------------- step variants
 
 function stepLabel(app, kind) {
   const { state } = app;
@@ -78,7 +71,7 @@ function question(app, actions) {
   const unsure = h("button", { class: "btn", type: "button", id: "unsure", text: "Not sure", disabled: ui.selected === null, onClick: () => actions.answer(false) });
 
   const select = (index) => {
-    ui.selected = index;  // local update: no re-render, so focus and motion stay calm
+    ui.selected = index;
     options.querySelectorAll(".option").forEach((node, n) => node.setAttribute("aria-checked", String(n === index)));
     sure.disabled = unsure.disabled = false;
   };
@@ -185,8 +178,6 @@ function failed(message, actions) {
     h("button", { class: "btn", type: "button", text: "Try again", onClick: actions.retry }));
 }
 
-// ---------------------------------------------------------------- why this step
-
 function why(app, actions) {
   const { state, ui, store } = app;
   const showingAnswer = ui.phase === "feedback" && state.last?.action === "practice";
@@ -246,8 +237,6 @@ function why(app, actions) {
   }
   return h("aside", { class: "why", "aria-label": "Why this step" }, blocks);
 }
-
-// ---------------------------------------------------------------- keyboard
 
 export function driveKey(event, app, actions) {
   const { state, ui } = app;

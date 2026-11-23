@@ -1,9 +1,3 @@
-// Renders the 20-second launch film: 600 frames of tools/brag/film.html, each a pure function of
-// time, plus the synthesised soundtrack. Follows the brag-slim skill (github.com/latent-spaces/brag).
-//
-//   node tools/brag/render.mjs            full render to brag-output/brag.mp4
-//   node tools/brag/render.mjs stills     only a few stills, to check layout before rendering
-
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
@@ -19,7 +13,7 @@ mkdirSync(work, { recursive: true });
 
 const FPS = 30;
 const SECONDS = 20;
-const POSTER_AT = 19.2;  // a settled frame of the outro
+const POSTER_AT = 19.2;
 const skills = JSON.parse(readFileSync(join(root, "content", "skills.json"), "utf8")).skills;
 const stillsOnly = process.argv[2] === "stills";
 
@@ -35,7 +29,6 @@ try {
   };
 
   if (stillsOnly) {
-    // settled frames and mid-transition frames (each scene's exit end and the next one's entry start)
     for (const t of [1.0, 2.5, 2.9, 3.15, 4.8, 5.9, 6.2, 8.8, 9.9, 10.2, 13.8, 14.2, 16.4, 17.2, 19.2]) {
       await frame(t, join(work, `still_${t.toFixed(2)}.png`));
     }
@@ -44,7 +37,7 @@ try {
     for (let i = 0; i < FPS * SECONDS; i += 1) await frame(i / FPS, join(work, `frame_${String(i).padStart(4, "0")}.png`));
     await frame(POSTER_AT, join(out, "brag.jpg"), "jpeg");
     await frame(POSTER_AT, join(work, "poster.png"));
-    copyFileSync(join(work, "poster.png"), join(work, "frame_0000.png"));  // frame 0 is the poster, so thumbnails show it
+    copyFileSync(join(work, "poster.png"), join(work, "frame_0000.png"));
     const music = spawnSync(process.env.PYTHON || "python3", [join(here, "music.py"), join(work, "music.wav")], { stdio: "inherit" });
     if (music.status !== 0) throw new Error("music synthesis failed");
     const encode = spawnSync("ffmpeg", ["-y", "-framerate", String(FPS), "-i", join(work, "frame_%04d.png"), "-i", join(work, "music.wav"),
