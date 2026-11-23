@@ -311,7 +311,7 @@ It does not show:
 - **A large edge for the model.** A student's running average ranks answers almost as well (AUC 0.706 against 0.709). With assumed numbers the HMM is poorly calibrated on real data (0.082) until fitted.
 - **Robustness to wrong parameters.** On mismatched learners the rule moves on too early: 11.3% of skills are left unknown, against 4.0% for three in a row, which also masters more (83.9% against 71.6%). Bagdar's higher payoff there is measured with its own reward table, and its Brier score is worse than the base rate.
 - **A fair win on matched learners.** A rule tested on its own model wins by construction.
-- **That A* is needed everywhere.** On Pathfinding and Decisions all four algorithms are optimal; the search matters only where soft prerequisites create a choice.
+- **That A-star search is needed everywhere.** On Pathfinding and Decisions all four algorithms are optimal; the search matters only where soft prerequisites create a choice.
 
 A review of reinforcement learning for instructional sequencing found at least 23 studies evaluated only on simulated data [8]. For the teaching policy, this project belongs to that group and says so.
 

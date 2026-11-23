@@ -26,8 +26,8 @@ const PAGES = [
 const PRINT_CSS = `
   @font-face { font-family: "Source Serif 4"; src: url("../../web/fonts/SourceSerif4-latin.woff2") format("woff2"); font-weight: 200 900; }
   @page { size: A4; margin: 19mm 18mm 20mm; }
-  html { font-size: 10.4pt; line-height: 1.5; }
-  body { min-height: 0; }
+  html { font-size: 10.4pt; line-height: 1.5; background: none; }
+  body { min-height: 0; background: none; }  /* print on white paper, not on the app's tinted ground */
   h1, h2, h3 { font-family: "Source Serif 4", Georgia, serif; font-weight: 400; letter-spacing: -0.012em; line-height: 1.15; break-after: avoid; }
   h1 { font-size: 27pt; font-weight: 300; margin: 0 0 12pt; }
   h2 { font-size: 16.5pt; margin: 22pt 0 7pt; padding-top: 9pt; border-top: 1px solid var(--line); }
