@@ -1,0 +1,503 @@
+{
+  "seed": 7,
+  "episodes": 20000,
+  "profiles": 200,
+  "note": "Simulated learners. Verifies the implementation and compares decision rules under stated assumptions; it is not evidence of learning gains in real students.",
+  "policies": {
+    "matched": [
+      {
+        "policy": "Bagdar (HMM + MDP)",
+        "minutes": 6.47725,
+        "mastered": 0.9086,
+        "left_unknown": 0.0178,
+        "payoff": 1.97375
+      },
+      {
+        "policy": "Bagdar + lookahead",
+        "minutes": 6.38205,
+        "mastered": 0.90675,
+        "left_unknown": 0.01185,
+        "payoff": 2.1007
+      },
+      {
+        "policy": "3-in-a-row",
+        "minutes": 8.06665,
+        "mastered": 0.92385,
+        "left_unknown": 0.00835,
+        "payoff": 0.7076
+      },
+      {
+        "policy": "Fixed dose",
+        "minutes": 5.0,
+        "mastered": 0.7175,
+        "left_unknown": 0.1295,
+        "payoff": -0.5325
+      },
+      {
+        "policy": "Lessons only",
+        "minutes": 4.0,
+        "mastered": 0.3336,
+        "left_unknown": 0.06055,
+        "payoff": -4.6015
+      },
+      {
+        "policy": "Oracle (sees truth)",
+        "minutes": 3.54855,
+        "mastered": 1.0,
+        "left_unknown": 0.0,
+        "payoff": 6.45145
+      }
+    ],
+    "mismatched": [
+      {
+        "policy": "Bagdar (HMM + MDP)",
+        "minutes": 8.8736,
+        "mastered": 0.71565,
+        "left_unknown": 0.1128,
+        "payoff": -4.26685
+      },
+      {
+        "policy": "Bagdar + lookahead",
+        "minutes": 8.85725,
+        "mastered": 0.71825,
+        "left_unknown": 0.094,
+        "payoff": -4.0235
+      },
+      {
+        "policy": "3-in-a-row",
+        "minutes": 12.5273,
+        "mastered": 0.83855,
+        "left_unknown": 0.0403,
+        "payoff": -5.35205
+      },
+      {
+        "policy": "Fixed dose",
+        "minutes": 5.0,
+        "mastered": 0.44945,
+        "left_unknown": 0.2888,
+        "payoff": -6.14625
+      },
+      {
+        "policy": "Lessons only",
+        "minutes": 4.0,
+        "mastered": 0.1835,
+        "left_unknown": 0.18475,
+        "payoff": -8.095
+      },
+      {
+        "policy": "Oracle (sees truth)",
+        "minutes": 6.28795,
+        "mastered": 1.0,
+        "left_unknown": 0.0,
+        "payoff": 3.71205
+      }
+    ],
+    "foreign": [
+      {
+        "policy": "Bagdar (HMM + MDP)",
+        "minutes": 5.6955,
+        "mastered": 0.93775,
+        "left_unknown": 0.0004,
+        "payoff": 3.36675
+      },
+      {
+        "policy": "Bagdar + lookahead",
+        "minutes": 5.6815,
+        "mastered": 0.93595,
+        "left_unknown": 0.0004,
+        "payoff": 3.35375
+      },
+      {
+        "policy": "3-in-a-row",
+        "minutes": 6.86625,
+        "mastered": 0.94245,
+        "left_unknown": 0.00415,
+        "payoff": 2.229
+      },
+      {
+        "policy": "Fixed dose",
+        "minutes": 5.0,
+        "mastered": 0.74065,
+        "left_unknown": 0.0453,
+        "payoff": 0.65675
+      },
+      {
+        "policy": "Lessons only",
+        "minutes": 4.0,
+        "mastered": 0.3204,
+        "left_unknown": 0.0671,
+        "payoff": -4.865
+      },
+      {
+        "policy": "Oracle (sees truth)",
+        "minutes": 3.8853,
+        "mastered": 1.0,
+        "left_unknown": 0.0,
+        "payoff": 6.1147
+      }
+    ]
+  },
+  "calibration": {
+    "matched": {
+      "answers": 99821,
+      "brier": 0.21209829309213385,
+      "brier_base_rate": 0.230775293122261,
+      "expected_calibration_error": 0.0021615513590394248,
+      "bins": [
+        {
+          "range": [
+            0.4,
+            0.5
+          ],
+          "n": 6079,
+          "forecast": 0.46548656910557007,
+          "observed": 0.46932061194275376
+        },
+        {
+          "range": [
+            0.5,
+            0.6
+          ],
+          "n": 50420,
+          "forecast": 0.5419809934079437,
+          "observed": 0.5400833002776676
+        },
+        {
+          "range": [
+            0.6,
+            0.7
+          ],
+          "n": 10768,
+          "forecast": 0.651492133504066,
+          "observed": 0.6471025260029718
+        },
+        {
+          "range": [
+            0.7,
+            0.8
+          ],
+          "n": 10136,
+          "forecast": 0.7703560515812122,
+          "observed": 0.7747632202052092
+        },
+        {
+          "range": [
+            0.8,
+            0.9
+          ],
+          "n": 22418,
+          "forecast": 0.8408796962008341,
+          "observed": 0.8406637523418682
+        }
+      ],
+      "probability_on_true_state": 0.4665347684763484,
+      "map_accuracy": 0.5870442872962863
+    },
+    "mismatched": {
+      "answers": 134706,
+      "brier": 0.2516232385706927,
+      "brier_base_rate": 0.24868059978351123,
+      "expected_calibration_error": 0.09058545588359919,
+      "bins": [
+        {
+          "range": [
+            0.4,
+            0.5
+          ],
+          "n": 11244,
+          "forecast": 0.46470029896110876,
+          "observed": 0.4589114194236926
+        },
+        {
+          "range": [
+            0.5,
+            0.6
+          ],
+          "n": 67933,
+          "forecast": 0.5473971671287904,
+          "observed": 0.4828581101968116
+        },
+        {
+          "range": [
+            0.6,
+            0.7
+          ],
+          "n": 18471,
+          "forecast": 0.6494088430078737,
+          "observed": 0.5194629419089384
+        },
+        {
+          "range": [
+            0.7,
+            0.8
+          ],
+          "n": 14241,
+          "forecast": 0.7623846684124095,
+          "observed": 0.6078927041640334
+        },
+        {
+          "range": [
+            0.8,
+            0.9
+          ],
+          "n": 22817,
+          "forecast": 0.8408042995186804,
+          "observed": 0.7026340009641934
+        }
+      ],
+      "probability_on_true_state": 0.43183127106578173,
+      "map_accuracy": 0.5446251817873137
+    },
+    "foreign": {
+      "answers": 88616,
+      "brier": 0.1933527034409271,
+      "brier_base_rate": 0.21058554552525452,
+      "expected_calibration_error": 0.056417188823451876,
+      "bins": [
+        {
+          "range": [
+            0.4,
+            0.5
+          ],
+          "n": 4166,
+          "forecast": 0.46622675482745507,
+          "observed": 0.6116178588574172
+        },
+        {
+          "range": [
+            0.5,
+            0.6
+          ],
+          "n": 46717,
+          "forecast": 0.5407741961911152,
+          "observed": 0.5795962925701564
+        },
+        {
+          "range": [
+            0.6,
+            0.7
+          ],
+          "n": 7787,
+          "forecast": 0.6523504694780176,
+          "observed": 0.745087967124695
+        },
+        {
+          "range": [
+            0.7,
+            0.8
+          ],
+          "n": 8703,
+          "forecast": 0.7761795696339834,
+          "observed": 0.8608525795702632
+        },
+        {
+          "range": [
+            0.8,
+            0.9
+          ],
+          "n": 21243,
+          "forecast": 0.8407918707715294,
+          "observed": 0.8935649390387421
+        }
+      ],
+      "probability_on_true_state": 0.44647820647041214,
+      "map_accuracy": 0.5278235880825178
+    }
+  },
+  "search": [
+    {
+      "destination": "Defense day",
+      "required_skills": 13,
+      "relevant_skills": 16,
+      "algorithms": [
+        {
+          "algorithm": "A*",
+          "expanded": 145.025,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.7997912610881031
+        },
+        {
+          "algorithm": "UCS",
+          "expanded": 445.215,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 1.5899295720737427
+        },
+        {
+          "algorithm": "Greedy",
+          "expanded": 13.0,
+          "cost_ratio": 1.0187626890439454,
+          "optimal_share": 0.43,
+          "milliseconds": 0.08100602310150862
+        },
+        {
+          "algorithm": "BFS",
+          "expanded": 392.0,
+          "cost_ratio": 1.0008377214237199,
+          "optimal_share": 0.94,
+          "milliseconds": 1.1886772513389587
+        }
+      ]
+    },
+    {
+      "destination": "Final exam",
+      "required_skills": 20,
+      "relevant_skills": 20,
+      "algorithms": [
+        {
+          "algorithm": "A*",
+          "expanded": 33.33,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.2846412383951247
+        },
+        {
+          "algorithm": "UCS",
+          "expanded": 4154.195,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 23.55850916239433
+        },
+        {
+          "algorithm": "Greedy",
+          "expanded": 20.0,
+          "cost_ratio": 1.0774069761145806,
+          "optimal_share": 0.005,
+          "milliseconds": 0.14972064294852316
+        },
+        {
+          "algorithm": "BFS",
+          "expanded": 4148.0,
+          "cost_ratio": 1.0455297299340292,
+          "optimal_share": 0.0,
+          "milliseconds": 18.647878316696733
+        }
+      ]
+    },
+    {
+      "destination": "Pathfinding",
+      "required_skills": 6,
+      "relevant_skills": 6,
+      "algorithms": [
+        {
+          "algorithm": "A*",
+          "expanded": 6.16,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.01340265735052526
+        },
+        {
+          "algorithm": "UCS",
+          "expanded": 8.0,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.011627899948507547
+        },
+        {
+          "algorithm": "Greedy",
+          "expanded": 6.0,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.012617874890565872
+        },
+        {
+          "algorithm": "BFS",
+          "expanded": 8.0,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.009041866287589073
+        }
+      ]
+    },
+    {
+      "destination": "Hidden state",
+      "required_skills": 5,
+      "relevant_skills": 10,
+      "algorithms": [
+        {
+          "algorithm": "A*",
+          "expanded": 11.26,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.04120080731809139
+        },
+        {
+          "algorithm": "UCS",
+          "expanded": 35.085,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.08604537695646286
+        },
+        {
+          "algorithm": "Greedy",
+          "expanded": 5.0,
+          "cost_ratio": 1.001812692873777,
+          "optimal_share": 0.915,
+          "milliseconds": 0.020778703037649393
+        },
+        {
+          "algorithm": "BFS",
+          "expanded": 21.0,
+          "cost_ratio": 1.001812692873777,
+          "optimal_share": 0.915,
+          "milliseconds": 0.04172143992036581
+        }
+      ]
+    },
+    {
+      "destination": "Decisions",
+      "required_skills": 5,
+      "relevant_skills": 10,
+      "algorithms": [
+        {
+          "algorithm": "A*",
+          "expanded": 5.68,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.017988112522289157
+        },
+        {
+          "algorithm": "UCS",
+          "expanded": 20.625,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.04293447942472994
+        },
+        {
+          "algorithm": "Greedy",
+          "expanded": 5.0,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.015797852538526058
+        },
+        {
+          "algorithm": "BFS",
+          "expanded": 15.0,
+          "cost_ratio": 1.0,
+          "optimal_share": 1.0,
+          "milliseconds": 0.02472053049132228
+        }
+      ]
+    }
+  ],
+  "mdp": {
+    "iterations": 47,
+    "policy": {
+      "unknown": "explain",
+      "fragile": "practice",
+      "mastered": "advance"
+    },
+    "values": {
+      "unknown": 3.0276108351780247,
+      "fragile": 6.511627906932486,
+      "mastered": 10.0
+    },
+    "advance_threshold": 0.885,
+    "actions": [
+      "explain",
+      "practice",
+      "advance"
+    ]
+  }
+}
