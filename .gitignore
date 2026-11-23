@@ -1,0 +1,24 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.local
+.DS_Store
+.claude/
+node_modules/
+*.egg-info/
+build/
+dist/
+
+# public datasets are downloaded on demand (python -m bagdar realdata), never committed
+data/
+docs/media/raw/
+
+# generated narration clips (tools/narrate.mjs)
+docs/media/narration/
+
+# intermediate frames of the launch film (tools/brag/render.mjs)
+brag-output/work/
+
+# scratch files of the PDF build (tools/build_docs.mjs)
+docs/.build/
