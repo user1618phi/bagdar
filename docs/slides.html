@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>Bagdar: a GPS for learning. Defense slides</title>
+<link rel="stylesheet" href="../web/kit.css">
+<style>
+  /* Seven slides, one idea each, headline states the conclusion. Body text is 28px or larger
+     so the back row can read it; only table cells and source lines go smaller. */
+  @font-face { font-family: "Source Serif 4"; src: url("../web/fonts/SourceSerif4-latin.woff2") format("woff2"); font-weight: 200 900; }
+  @page { size: 1280px 720px; margin: 0; }
+  :root { --font-heading: "Source Serif 4", Georgia, serif; --weight-heading: 300; --tracking-heading: -0.022em; }
+  html, body { margin: 0; background: var(--bg); }
+  .slide { position: relative; width: 1280px; height: 720px; padding: 64px 80px 56px; overflow: hidden; break-after: page; display: flex; flex-direction: column; }
+  .slide > .label:first-child { margin-bottom: 22px; font-size: 16px; }
+  h1 { font-size: 104px; letter-spacing: -0.022em; line-height: 1; }
+  h2 { font-size: 50px; line-height: 1.08; max-width: 1040px; text-wrap: balance; }
+  p { max-width: none; }
+  .lead { font-size: 30px; line-height: 1.35; color: var(--fg); max-width: 30em; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; font-size: 16px; }
+  .ruler { margin: 26px 0 30px; }
+  .rows3 > div { display: grid; grid-template-columns: 210px 1fr; gap: 28px; align-items: baseline; padding: 14px 0; border-top: 1px solid var(--line); }
+  .rows3 > div:last-child { border-bottom: 1px solid var(--line); }
+  .big { font: 300 54px/1 var(--font-heading); letter-spacing: -0.022em; font-variant-numeric: tabular-nums; }
+  .rows3 p { font-size: 26px; line-height: 1.3; }
+  .src { display: block; font: 400 15px/1.4 var(--font-mono); color: var(--mut); text-transform: lowercase; margin-top: 4px; }
+  .cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 44px; }
+  .cols3 h3, .cols2 h3 { font: 400 16px/1.4 var(--font-mono); color: var(--mut); text-transform: lowercase; margin-bottom: 12px; }
+  .cols3 .name { font: 300 40px/1.05 var(--font-heading); letter-spacing: -0.022em; margin-bottom: 12px; }
+  .cols3 p { font-size: 24px; line-height: 1.32; }
+  .chain { display: flex; align-items: center; gap: 14px; font: 400 18px/1 var(--font-mono); text-transform: lowercase; color: var(--mut); margin-top: 30px; }
+  .chain b { font-weight: 400; color: var(--fg); padding: 12px 16px; border: 1px solid var(--tick); border-radius: 13px; }
+  table { font-size: 20px; }
+  th { font-size: 15px; padding-bottom: 12px; }
+  td { padding: 15px 18px 15px 0; line-height: 1.3; }
+  td.n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 18px; }
+  td strong { font-weight: 500; }
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+  .cols2 li, .cols2 p { font-size: 25px; line-height: 1.32; }
+  ul { margin: 0; padding: 0; list-style: none; }
+  li { padding: 11px 0; border-top: 1px solid var(--line); }
+  li:last-child { border-bottom: 1px solid var(--line); }
+  .note { font-size: 22px; color: var(--mut); margin-top: 22px; max-width: 46em; line-height: 1.35; }
+</style>
+</head>
+<body>
+
+<section class="slide">
+  <span class="label">ai fundamentals · final project · november 2026</span>
+  <h1 style="margin-top: 96px;">Bagdar: a <span class="acc">GPS</span><br>for learning</h1>
+  <p class="lead" style="margin-top: 34px;">It finds out what you know, plans the shortest route<br>to your exam, and picks each next step.</p>
+  <div class="foot label"><span>mustafa kassym · qairu · aif1303</span><span>github.com/user1618phi/bagdar</span></div>
+</section>
+
+<section class="slide">
+  <span class="label">01 · problem and objectives</span>
+  <h2>Students practise blind: no position, no route, no <span class="acc">next step</span></h2>
+  <div class="rows3" style="margin-top: 30px;">
+    <div><span class="big">−17%</span><p>on the unaided exam after practising with unrestricted ChatGPT, against no AI at all.<span class="src">bastani et al., pnas, 2025</span></p></div>
+    <div><span class="big">15%</span><p>of students who have an AI chat tutor use it regularly.<span class="src">khan academy on khanmigo</span></p></div>
+    <div><span class="big">1 dose</span><p>The same amount of practice for everyone: too much for some, too little for others.</p></div>
+  </div>
+  <p class="note"><span class="mark">objective</span>&nbsp; Measure knowledge as a probability, plan the cheapest route to a goal, and justify every step with numbers.</p>
+</section>
+
+<section class="slide">
+  <span class="label">02 · solution</span>
+  <h2>A GPS does three things. <span class="acc">So does Bagdar.</span></h2>
+  <div class="ruler"></div>
+  <div class="cols3">
+    <div><h3>01 · locate</h3><p class="name">Hidden Markov model</p><p>Reads noisy answers and keeps a belief over unknown, fragile and mastered for each skill.</p></div>
+    <div><h3>02 · route</h3><p class="name">A* search</p><p>Finds the cheapest order of skills through the prerequisite map, in minutes.</p></div>
+    <div><h3>03 · steer</h3><p class="name">Markov decision process</p><p>Chooses a lesson, a question or moving on, by expected value.</p></div>
+  </div>
+  <div class="chain"><b>answer + confidence</b>→<b>hmm: belief</b>→<b>mdp: next step</b>⇄<b>a*: next skill</b>→<b>eta, pass chance, reason</b></div>
+  <div class="foot label"><span>one goal, three algorithms chained: the belief sets the action values and every edge cost of the route</span><span>live demo →</span></div>
+</section>
+
+<section class="slide">
+  <span class="label">03 · the three ai topics</span>
+  <h2>Each algorithm answers one question, and each is <span class="acc">checked</span></h2>
+  <table style="margin-top: 26px;">
+    <thead><tr><th>topic</th><th>algorithm</th><th>input → output</th><th>why it fits</th><th>checked against</th></tr></thead>
+    <tbody>
+      <tr><td><strong>HMM</strong><br><span class="src">week 7</span></td><td>Forward filtering, Viterbi</td><td>Wrong, not sure → belief [0.71, 0.20, 0.09]</td><td>Answers are noisy: guess 25%, slip 8%</td><td>Textbook umbrella world 0.818, 0.883; brute force</td></tr>
+      <tr><td><strong>MDP</strong><br><span class="src">week 5</span></td><td>Value iteration, 47 sweeps; Q on the belief</td><td>Belief → lesson 3.77, question 3.64, move on −10.69</td><td>Moving on too early and practising too long both cost time</td><td>Closed form V = [3.03, 6.51, 10]; Bellman residual</td></tr>
+      <tr><td><strong>A*</strong><br><span class="src">week 2</span></td><td>f = g + h, admissible and consistent h</td><td>Beliefs → cheapest order of 13 skills, 66.9 min</td><td>Soft prerequisites make the order matter</td><td>Brute force over all orders; equal cost to UCS</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Baum-Welch (learning the HMM from data) and expectimax (one-step lookahead) are used in the evaluation.</p>
+</section>
+
+<section class="slide">
+  <span class="label">04 · testing and results</span>
+  <h2>The knowledge model holds on real students, and we say <span class="acc">where the tutor breaks</span></h2>
+  <div class="rows3" style="margin-top: 24px;">
+    <div><span class="big">0.709</span><p>AUC forecasting 52,840 answers of 841 real students it never saw, calibration error 0.012. Best AUC, Brier score and accuracy of seven forecasters.<span class="src">assistments 2009-2010 · fitted with baum-welch</span></p></div>
+    <div><span class="big">125×</span><p>fewer states than uniform-cost search for the same optimal route: 33 against 4,154.<span class="src">final exam, 20 skills, 200 random learners</span></p></div>
+    <div><span class="big">6.5 min</span><p>per skill against 8.1 for "three correct in a row", at about the same mastery (91% and 92%).<span class="src">simulation, 20,000 skills per rule · 81 tests pass</span></p></div>
+  </div>
+  <p class="note"><span class="mark warn">limit</span>&nbsp; With wrong parameters mastery falls from 91% to 72%. A student's own running average ranks answers almost as well (0.706): our edge is calibration.</p>
+</section>
+
+<section class="slide">
+  <span class="label">05 · originality and practical value</span>
+  <h2>Everyone has the algorithms. Nobody shows the <span class="acc">receipts</span>.</h2>
+  <div class="cols2" style="margin-top: 28px;">
+    <div><h3>not different, and we say so</h3><ul>
+      <li>Knowledge tracing is from 1995, A* from 1968</li>
+      <li>Exam readiness scores exist: UWorld, Achievable</li>
+      <li>Duolingo, Khan and Math Academy win on content and reach</li>
+    </ul></div>
+    <div><h3>different</h3><ul>
+      <li>A probability, an ETA and the reason, on one screen</li>
+      <li>A ledger: its forecasts against what happened</li>
+      <li>Not a chat: no answer before an attempt</li>
+      <li>Runs offline, no dependencies, nothing stored on a server</li>
+    </ul></div>
+  </div>
+  <p class="note"><span class="mark">next market</span>&nbsp; The UNT in Kazakh: 233,000 test-takers and several official attempts a year, so the forecast can be checked in public.</p>
+</section>
+
+<section class="slide">
+  <span class="label">06 · limits and next steps</span>
+  <h2>What is not proven yet, and <span class="acc">what comes next</span></h2>
+  <div class="cols2" style="margin-top: 30px;">
+    <div><h3>limits</h3><ul>
+      <li>Teaching parameters are assumed, not fitted</li>
+      <li>QMDP ignores the value of information</li>
+      <li>No forgetting, so no spaced review yet</li>
+      <li>Multiple choice only; graph built by hand</li>
+    </ul></div>
+    <div><h3>next</h3><ul>
+      <li>Fit the teaching parameters from our own logs</li>
+      <li>Add forgetting and spaced review</li>
+      <li>Pilot with classmates: publish predicted against actual</li>
+      <li>A Kazakh pack for the UNT</li>
+    </ul></div>
+  </div>
+  <div class="foot label"><span>python -m bagdar · 81 tests · standard library only</span><span>questions</span></div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 320" font-family="'Medeo Mono','IBM Plex Mono',Menlo,monospace" font-size="13" fill="#19171b">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#59575c"/></marker></defs>
+  <g fill="none" stroke="#19171b" stroke-width="1">
+    <rect x="10" y="128" width="150" height="64" rx="13"/>
+    <rect x="220" y="128" width="200" height="64" rx="13"/>
+    <rect x="520" y="24" width="230" height="64" rx="13"/>
+    <rect x="520" y="232" width="230" height="64" rx="13"/>
+    <rect x="820" y="120" width="170" height="80" rx="13" stroke="#9c43e5"/>
+  </g>
+  <g stroke="#59575c" stroke-width="1" fill="none" marker-end="url(#a)">
+    <path d="M160 160H218"/>
+    <path d="M420 146C470 146 470 56 518 56"/>
+    <path d="M420 174C470 174 470 264 518 264"/>
+    <path d="M615 88V230"/>
+    <path d="M655 232V90"/>
+    <path d="M750 56C790 56 790 140 818 142"/>
+    <path d="M750 264C790 264 790 180 818 178"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="85" y="156">answer</text><text x="85" y="174">+ confidence</text>
+    <text x="320" y="150" font-weight="600">HMM</text><text x="320" y="167">belief b over unknown,</text><text x="320" y="183">fragile, mastered</text>
+    <text x="635" y="51" font-weight="600">MDP</text><text x="635" y="71">lesson / question / move on</text>
+    <text x="635" y="259" font-weight="600">A* search</text><text x="635" y="279">cheapest order of skills</text>
+    <text x="905" y="148" fill="#963cde">next step, reason,</text><text x="905" y="166" fill="#963cde">ETA in minutes,</text><text x="905" y="184" fill="#963cde">pass probability</text>
+  </g>
+  <g font-size="11.5" fill="#59575c">
+    <text x="296" y="82">Q(b,a) = Σ b(s)·Q*(s,a)</text>
+    <text x="262" y="252">step cost = b · minutes to master</text>
+    <text x="607" y="164" text-anchor="end">minutes per state</text>
+    <text x="663" y="164">next skill</text>
+  </g>
+</svg>
