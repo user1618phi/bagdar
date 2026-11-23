@@ -74,7 +74,7 @@ Format: 2 minutes problem and objectives, 3 to 5 minutes live demo, 2 minutes on
 
 **Why A-star and not uniform-cost search or BFS?** UCS is optimal but blind: on the full course it expands about 4,154 states where A-star expands 33, for the same cost. BFS minimises the number of skills, not the time, and greedy follows the heuristic only; on the full course both return worse routes (BFS in every run, greedy in 99.5 percent).
 
-**How do you know the implementation is correct?** 81 tests. Textbook values for the umbrella world, 0.818 and 0.883. Viterbi and the routes against brute-force enumeration. MDP values against the closed form. Baum-Welch recovering known parameters. Fuzzed full sessions that must terminate with valid state.
+**How do you know the implementation is correct?** 90 tests. Textbook values for the umbrella world, 0.818 and 0.883. Viterbi and the routes against brute-force enumeration. MDP values against the closed form. Baum-Welch recovering known parameters. Fuzzed full sessions that must terminate with valid state.
 
 **How do you know it helps real students?** I do not, and I say so. What I have: the knowledge model forecasts real students' answers better than six alternatives; the policy beats simple rules in simulation, including on learners built on a different theory. What I do not have: a study where real students were taught by it. That is the next step.
 
@@ -103,7 +103,7 @@ Format: 2 minutes problem and objectives, 3 to 5 minutes live demo, 2 minutes on
 | A-star against UCS, full course | 33 against 4,154 states expanded, same cost |
 | Real students | 3,322 to fit, 841 held out, 52,840 answers; AUC 0.709; calibration error 0.012 |
 | Simulation | 6.48 minutes and 90.9% mastered, against 8.07 minutes and 92.4% for three in a row |
-| Tests | 81 |
+| Tests | 90 |
 
 ## Шпаргалка по-русски
 

@@ -82,7 +82,9 @@ def load_sequences(path: Path) -> Sequences:
     """One sequence of 0/1 answers per (student, skill), in the order the student gave them.
 
     Standard cleaning for this dataset: keep main problems (original = 1), drop rows without a
-    skill, order by order_id. A problem tagged with several skills appears once per skill.
+    skill, order by order_id. A problem tagged with several skills carries a combined tag
+    (for example "2_37_70"), which is treated as a skill of its own: 145 tags in all, 101 single
+    skills and 44 combinations.
     """
     rows = []
     with open(path, encoding="latin-1", newline="") as handle:
@@ -133,6 +135,8 @@ def baum_welch(sequences: Sequences, model: BinaryHMM, iterations: int = 30, tol
 
         for (_, skill), answers in sequences.items():
             n = len(answers)
+            if n == 0:
+                continue
             start = model.start(skill)
             # forward pass with scaling: alpha[t][s] = P(X_t = s | answers 1..t)
             alphas, scales = [], []
@@ -207,6 +211,8 @@ def auc(pairs: list[tuple[float, int]]) -> float:
         rank_sum += average_rank * sum(label for _, label in ordered[index:end + 1])
         index = end + 1
     negatives = len(pairs) - positives
+    if positives == 0 or negatives == 0:
+        return 0.5  # undefined with one class; 0.5 is "no ranking information"
     return (rank_sum - positives * (positives + 1) / 2) / (positives * negatives)
 
 

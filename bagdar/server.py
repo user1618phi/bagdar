@@ -120,11 +120,11 @@ class Handler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", "0"))
         except ValueError:
             raise ValueError("Invalid Content-Length") from None
-        if length > MAX_BODY_BYTES:
+        if not 0 <= length <= MAX_BODY_BYTES:
             raise ValueError("Request body is too large")
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
-        except (json.JSONDecodeError, UnicodeDecodeError):
+        except (json.JSONDecodeError, UnicodeDecodeError, RecursionError):
             raise ValueError("Request body must be valid JSON") from None
         if not isinstance(body, dict):
             raise ValueError("Request body must be a JSON object")
@@ -141,11 +141,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def _static(self, path: str) -> None:
         relative = "index.html" if path in ("", "/") else path.lstrip("/")
-        target = (WEB_DIR / relative).resolve()
-        if WEB_DIR.resolve() not in target.parents or not target.is_file():
+        try:
+            target = (WEB_DIR / relative).resolve()
+            found = WEB_DIR.resolve() in target.parents and target.is_file()
+            data = target.read_bytes() if found else b""
+        except (OSError, ValueError):  # a null byte or an over-long name is just another missing file
+            found = False
+        if not found:
             self._json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
             return
-        data = target.read_bytes()
         content_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
         if content_type.startswith("text/") or content_type in ("application/javascript", "application/json"):
             content_type += "; charset=utf-8"
@@ -160,8 +164,6 @@ class Handler(BaseHTTPRequestHandler):
 def _encode(value: object) -> object:
     if isinstance(value, (set, frozenset)):
         return sorted(value)
-    if value == float("inf"):
-        return None
     raise TypeError(f"cannot encode {type(value).__name__}")
 
 

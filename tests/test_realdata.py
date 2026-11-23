@@ -77,6 +77,13 @@ class ForecastTests(unittest.TestCase):
         self.assertAlmostEqual(realdata.auc([(0.2, 0), (0.9, 1)]), 1.0)
         self.assertAlmostEqual(realdata.auc([(0.5, 0), (0.5, 1), (0.5, 0), (0.5, 1)]), 0.5)  # ties count half
 
+    def test_degenerate_inputs_do_not_crash(self):
+        self.assertEqual(realdata.auc([(0.3, 1), (0.9, 1)]), 0.5)  # one class: no ranking information
+        data = {("1", "skill"): [], ("2", "skill"): [1, 0, 1]}
+        fitted, history = realdata.baum_welch(data, TRUTH, iterations=2)
+        self.assertEqual(len(history), 2)
+        self.assertAlmostEqual(sum(fitted.prior), 1.0)
+
     def test_score_of_perfect_and_constant_forecasts(self):
         perfect = realdata.score([(1.0, 1), (0.0, 0), (1.0, 1), (0.0, 0)])
         self.assertAlmostEqual(perfect["brier"], 0.0)

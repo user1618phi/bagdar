@@ -84,6 +84,18 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(connection.getresponse().status, 400)
         connection.close()
 
+    def test_hostile_requests_get_a_plain_error(self):
+        """Found in review: these used to escape as unhandled exceptions."""
+        connection = http.client.HTTPConnection("127.0.0.1", self.server.server_address[1], timeout=10)
+        connection.putrequest("POST", "/api/state")
+        connection.putheader("Content-Length", "-1")  # a negative length must not bypass the size limit
+        connection.endheaders()
+        self.assertEqual(connection.getresponse().status, 400)
+        connection.close()
+        self.assertEqual(self.request("/api/state", raw=b"[" * 200_000)[0], 400)  # deeply nested JSON
+        self.assertEqual(self.request("/" + "a" * 3000)[0], 404)  # a name too long for the file system
+        self.assertEqual(self.request("/a%00b")[0], 404)
+
     def test_static_files_and_path_traversal(self):
         status, body, content_type = self.request("/")
         self.assertEqual(status, 200)

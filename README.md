@@ -28,7 +28,7 @@ The app opens at `http://127.0.0.1:8000`. Other commands:
 
 ```bash
 python -m bagdar demo                  # console walk-through: input -> key steps -> output for each algorithm
-python -m unittest discover -s tests   # 81 tests, about 30 seconds
+python -m unittest discover -s tests   # 90 tests, a few seconds
 python -m bagdar experiments           # simulated learners; rewrites docs/results.json (seed 7)
 python -m bagdar realdata              # real learners; downloads ASSISTments once, rewrites docs/results_real.json
 python -m bagdar serve --port 8010     # another port
@@ -115,7 +115,7 @@ Mean states expanded over 200 random learners per destination. A\* and uniform-c
 
 ### Correctness
 
-81 tests: the umbrella-world values 0.818 and 0.883 and the Viterbi path from Russell and Norvig; hand calculations; brute-force enumeration for Viterbi and for routes; closed-form MDP values and the contraction of the Bellman residual; admissibility and consistency of the heuristic on every reachable state of random graphs; Baum-Welch recovering known parameters; requests against a live server; fuzzed full sessions.
+90 tests: the umbrella-world values 0.818 and 0.883 and the Viterbi path from Russell and Norvig; hand calculations; brute-force enumeration for Viterbi and for routes; closed-form MDP values and the contraction of the Bellman residual; admissibility and consistency of the heuristic on every reachable state of random graphs; Baum-Welch recovering known parameters; requests against a live server, including hostile ones; fuzzed and adversarial sessions; the same decisions under any hash seed. An independent review re-derived the HMM, MDP, search and Baum-Welch results by brute force; the twelve edge-case defects it found are fixed and each has a regression test.
 
 ## Repository map
 
@@ -132,7 +132,7 @@ bagdar/
   content.py     loads and validates a course pack
 content/         skill graph, 20 micro-lessons, 80 questions (JSON)
 web/             the interface: plain HTML, CSS and ES modules, no build step
-tests/           81 tests
+tests/           90 tests
 docs/            report, slides, design rationale, competition, results, media
 tools/           end-to-end interface check, demo recording, PDF build, launch film
 Dockerfile       container image: Python only, non-root

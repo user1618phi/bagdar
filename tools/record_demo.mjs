@@ -247,7 +247,7 @@ try {
   await click("#theme", 1000);
   await click("#dock a[data-view=drive]", 1400);
   await shot("12-dark");
-  await card("outro", "Bagdar", ["hmm locates · a* routes · mdp steers", "81 tests · zero dependencies · python -m bagdar", "github.com/user1618phi/bagdar"]);
+  await card("outro", "Bagdar", ["hmm locates · a* routes · mdp steers", "90 tests · zero dependencies · python -m bagdar", "github.com/user1618phi/bagdar"]);
   await sleep(700);
 
   if (errors.length) throw new Error(`console errors: ${errors.join(" | ")}`);

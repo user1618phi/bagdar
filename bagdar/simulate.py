@@ -176,7 +176,7 @@ def run_episode(tutor: Tutor, learner, policy: Policy, rng: random.Random, max_s
 def compare_policies(tutor: Tutor, learner, episodes: int, seed: int) -> list[dict]:
     rows = []
     for name, policy in make_policies(tutor).items():
-        rng = random.Random(seed)  # every policy meets the same sequence of learners
+        rng = random.Random(seed)  # same seed for every rule; streams diverge once rules act differently (unpaired comparison)
         runs = [run_episode(tutor, learner, policy, rng) for _ in range(episodes)]
         n = len(runs)
         rows.append({

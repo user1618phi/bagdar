@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import heapq
 import itertools
+import math
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Callable, Hashable, Iterable, Protocol
@@ -164,6 +165,7 @@ class RouteProblem:
         self.required = self._closure(follow_soft=False)  # must be studied on every route
         self.relevant = self._closure(follow_soft=True)  # may be worth studying
         self._order = sorted(self.relevant)
+        self._required_order = sorted(self.required)  # a fixed order, so sums of floats do not depend on set hashing
 
     def _closure(self, follow_soft: bool) -> frozenset[str]:
         """Skills still to study to reach the targets, walking prerequisite edges backwards."""
@@ -197,7 +199,7 @@ class RouteProblem:
         base cost (penalties only add). Consistent: completing a skill lowers h by at most that
         skill's base cost, which is never more than the step cost actually paid.
         """
-        return sum(self.base_cost[skill] for skill in self.required if skill not in state)
+        return math.fsum(self.base_cost[skill] for skill in self._required_order if skill not in state)
 
     def route_cost(self, order: list[str]) -> float:
         """Cost of studying the skills in the given order (inf if a hard prerequisite is violated)."""

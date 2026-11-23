@@ -18,7 +18,7 @@ Signature: ____________________   Date: ____________________
 
 These are checks that exist in the repository and can be re-run by anyone:
 
-- `python -m unittest discover -s tests` runs 81 tests: textbook values from Russell and Norvig (umbrella world), hand calculations, brute-force enumeration for Viterbi and for routes, closed-form MDP values, and requests against a live server.
+- `python -m unittest discover -s tests` runs 90 tests: textbook values from Russell and Norvig (umbrella world), hand calculations, brute-force enumeration for Viterbi and for routes, closed-form MDP values, and requests against a live server.
 - `python -m bagdar demo` prints the input, the key steps and the output of each algorithm so that every number can be recomputed by hand.
 - `python -m bagdar experiments` reproduces the simulation tables from a fixed seed.
 - `python -m bagdar realdata` re-fits the knowledge model on the public ASSISTments data and re-scores it on held-out students.

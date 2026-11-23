@@ -315,28 +315,28 @@
           "expanded": 145.025,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.7997912610881031
+          "milliseconds": 0.7687544147484004
         },
         {
           "algorithm": "UCS",
           "expanded": 445.215,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 1.5899295720737427
+          "milliseconds": 1.5419822267722338
         },
         {
           "algorithm": "Greedy",
           "expanded": 13.0,
           "cost_ratio": 1.0187626890439454,
           "optimal_share": 0.43,
-          "milliseconds": 0.08100602310150862
+          "milliseconds": 0.07730395067483187
         },
         {
           "algorithm": "BFS",
           "expanded": 392.0,
           "cost_ratio": 1.0008377214237199,
           "optimal_share": 0.94,
-          "milliseconds": 1.1886772513389587
+          "milliseconds": 1.1444522254168987
         }
       ]
     },
@@ -350,28 +350,28 @@
           "expanded": 33.33,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.2846412383951247
+          "milliseconds": 0.2771895891055465
         },
         {
           "algorithm": "UCS",
           "expanded": 4154.195,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 23.55850916239433
+          "milliseconds": 22.6233806530945
         },
         {
           "algorithm": "Greedy",
           "expanded": 20.0,
           "cost_ratio": 1.0774069761145806,
           "optimal_share": 0.005,
-          "milliseconds": 0.14972064294852316
+          "milliseconds": 0.14388381270691752
         },
         {
           "algorithm": "BFS",
           "expanded": 4148.0,
           "cost_ratio": 1.0455297299340292,
           "optimal_share": 0.0,
-          "milliseconds": 18.647878316696733
+          "milliseconds": 18.13860603957437
         }
       ]
     },
@@ -385,28 +385,28 @@
           "expanded": 6.16,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.01340265735052526
+          "milliseconds": 0.013141471426934004
         },
         {
           "algorithm": "UCS",
           "expanded": 8.0,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.011627899948507547
+          "milliseconds": 0.011290564434602857
         },
         {
           "algorithm": "Greedy",
           "expanded": 6.0,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.012617874890565872
+          "milliseconds": 0.012524973135441542
         },
         {
           "algorithm": "BFS",
           "expanded": 8.0,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.009041866287589073
+          "milliseconds": 0.008970574708655477
         }
       ]
     },
@@ -420,28 +420,28 @@
           "expanded": 11.26,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.04120080731809139
+          "milliseconds": 0.038181073032319546
         },
         {
           "algorithm": "UCS",
           "expanded": 35.085,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.08604537695646286
+          "milliseconds": 0.0805936986580491
         },
         {
           "algorithm": "Greedy",
           "expanded": 5.0,
           "cost_ratio": 1.001812692873777,
           "optimal_share": 0.915,
-          "milliseconds": 0.020778703037649393
+          "milliseconds": 0.019783154129981995
         },
         {
           "algorithm": "BFS",
           "expanded": 21.0,
           "cost_ratio": 1.001812692873777,
           "optimal_share": 0.915,
-          "milliseconds": 0.04172143992036581
+          "milliseconds": 0.039483276195824146
         }
       ]
     },
@@ -455,28 +455,28 @@
           "expanded": 5.68,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.017988112522289157
+          "milliseconds": 0.017108749598264694
         },
         {
           "algorithm": "UCS",
           "expanded": 20.625,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.04293447942472994
+          "milliseconds": 0.04084911895915866
         },
         {
           "algorithm": "Greedy",
           "expanded": 5.0,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.015797852538526058
+          "milliseconds": 0.015188276302069426
         },
         {
           "algorithm": "BFS",
           "expanded": 15.0,
           "cost_ratio": 1.0,
           "optimal_share": 1.0,
-          "milliseconds": 0.02472053049132228
+          "milliseconds": 0.023668272187933326
         }
       ]
     }

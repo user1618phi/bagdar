@@ -12,7 +12,7 @@ Technical Report, final project
 
 ## 2. Abstract
 
-Bagdar ("bağdar", Kazakh for direction or bearing) is a study tool that works like a navigator. The learner picks a destination, such as defense day. A hidden Markov model estimates what the learner knows from noisy answers. A* search plans the cheapest order of skills through a prerequisite graph. A Markov decision process, solved by value iteration, chooses each step: a lesson, a question, or moving on. The three are chained through one quantity, the belief. The engine is checked by 81 unit tests, simulation with three kinds of learner, and a held-out test on public answer logs. The algorithms are classical. The contribution is their integration and an evaluation that states its limits.
+Bagdar ("bağdar", Kazakh for direction or bearing) is a study tool that works like a navigator. The learner picks a destination, such as defense day. A hidden Markov model estimates what the learner knows from noisy answers. A* search plans the cheapest order of skills through a prerequisite graph. A Markov decision process, solved by value iteration, chooses each step: a lesson, a question, or moving on. The three are chained through one quantity, the belief. The engine is checked by 90 unit tests, simulation with three kinds of learner, and a held-out test on public answer logs. The algorithms are classical. The contribution is their integration and an evaluation that states its limits.
 
 ## 3. Problem and objectives
 
@@ -25,7 +25,7 @@ So the gap is not "more chat". It is a tool that keeps an explicit estimate of w
 | # | Objective | Measure | Result |
 |---|---|---|---|
 | 1 | Three course algorithms work toward one goal, each using another's output | Data flow (section 4), session trace (section 8) | Met |
-| 2 | Each algorithm is correct | Textbook values, brute force, closed forms | 79 of 81 tests pass |
+| 2 | Each algorithm is correct | Textbook values, brute force, closed forms | 79 of 90 tests pass |
 | 3 | Routes are optimal | A* cost equals UCS cost on 5 destinations x 200 belief profiles | 100% |
 | 4 | The decision rule beats simple rules under the stated model, and its behaviour under a wrong model is reported | Payoff on three simulated learner types | Section 9.2 |
 | 5 | Forecasts can be checked | Calibration error: simulated, model right; real logs, model fitted | 0.002; 0.012 |
@@ -206,17 +206,17 @@ Each link is visible. A wrong, hesitant answer raises P(unknown) to 0.71; the MD
 
 ### 9.1 Correctness tests
 
-`python -m unittest discover -s tests` runs 81 tests; all pass.
+`python -m unittest discover -s tests` runs 90 tests; all pass.
 
 | File | Tests | What is checked |
 |---|---|---|
 | `test_hmm.py` | 11 | Umbrella world from the textbook [1]: 0.818 and 0.883; Viterbi path rain, rain, no rain, rain, rain. One step by hand (P(evidence) = 0.2721). Viterbi against brute-force enumeration of all paths on 150 random sequences |
 | `test_mdp.py` | 11 | Closed-form values of a toy MDP and of the tutor MDP. The solution satisfies the Bellman equation. Each residual is at most gamma times the previous one. Closed-form minutes |
 | `test_search.py` | 13 | A* against brute force over all orders on 120 random graphs. Admissibility and consistency on every reachable state of 40 random graphs |
-| `test_tutor.py` | 26 | Content integrity, Poisson-binomial values, decisions, pinning, malformed input, determinism, fuzzed full sessions on all five destinations |
-| `test_server.py` | 7 | A live server on a free port: endpoints, 400 and 404 handling, oversized requests, security headers, path traversal, the answer key is never sent before the answer |
+| `test_tutor.py` | 33 | Content integrity, Poisson-binomial values, decisions, pinning, malformed input, determinism, fuzzed full sessions on all five destinations; adversarial and very long histories, wrong types, question rotation, independence from hash randomisation |
+| `test_server.py` | 8 | A live server on a free port: endpoints, 400 and 404 handling, oversized requests, security headers, path traversal, the answer key is never sent before the answer; hostile requests (negative length, deep nesting, null bytes) |
 | `test_simulate.py` | 5 | Same seed, same numbers; the claims of 9.2 hold on smaller runs |
-| `test_realdata.py` | 8 | Baum-Welch recovers known parameters from synthetic data; the likelihood never decreases; scoring functions |
+| `test_realdata.py` | 9 | Baum-Welch recovers known parameters from synthetic data; the likelihood never decreases; scoring functions; degenerate inputs |
 
 ### 9.2 Simulation experiments
 
@@ -283,7 +283,7 @@ Route search, 200 random belief profiles per destination (mean states expanded; 
 
 ### 9.3 Real answer logs: the knowledge model only
 
-`python -m bagdar realdata` fits the HMM with Baum-Welch (expectation-maximisation on the forward-backward recursions, written from scratch) to the public ASSISTments 2009-2010 logs of school mathematics [16]. Students are split so that no test student is seen in fitting: 3,322 to fit, 841 held out, 52,840 held-out answers; 145 skills in the data, 140 of them among the held-out students. Each answer is forecast before it is read. The logs hold right or wrong only, so the confidence signal is unused. The file is downloaded on demand; results are in `docs/results_real.json`.
+`python -m bagdar realdata` fits the HMM with Baum-Welch (expectation-maximisation on the forward-backward recursions, written from scratch) to the public ASSISTments 2009-2010 logs of school mathematics [16]. Students are split so that no test student is seen in fitting: 3,322 to fit, 841 held out, 52,840 held-out answers; 145 skill tags in the data (101 single skills and 44 combinations), 140 of them among the held-out students. Each answer is forecast before it is read. The logs hold right or wrong only, so the confidence signal is unused. The file is downloaded on demand; results are in `docs/results_real.json`.
 
 | Forecaster | AUC | Brier | Accuracy | Calibration error |
 |---|---|---|---|---|

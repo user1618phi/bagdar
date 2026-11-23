@@ -166,6 +166,98 @@ class RobustnessTests(unittest.TestCase):
         self.assertEqual(state["answered"], 0)
         self.assertEqual(TUTOR.replay(DEFENSE, "not a list")["answered"], 0)
 
+    def test_history_ending_in_a_manual_advance_does_not_crash(self):
+        """Found by fuzzing: an advance sent by a client, with nothing before it, used to raise."""
+        state = TUTOR.replay(DEFENSE, [{"skill": "agents", "action": "advance"}])
+        self.assertIsNone(state["last"])
+        self.assertEqual({s["id"]: s["status"] for s in state["skills"]}["agents"], "completed")
+        first = TUTOR.replay(DEFENSE, [])
+        history = [answer(first), {"skill": first["current"]["skill"], "action": "advance"}]
+        last = TUTOR.replay(DEFENSE, history)["last"]
+        self.assertEqual((last["action"], len(last["advanced"])), ("practice", 1))
+
+    def test_adversarial_histories_never_break_the_tutor(self):
+        rng = random.Random(123)
+        skills = list(PACK.skills)
+
+        def event():
+            roll, skill = rng.random(), rng.choice(skills)
+            if roll < 0.5:
+                item = rng.choice(PACK.items_by_skill[skill])
+                return {"skill": skill, "action": "practice", "item": item.id, "choice": rng.randrange(4), "sure": rng.random() < 0.5}
+            if roll < 0.7:
+                return {"skill": skill, "action": "explain"}
+            if roll < 0.9:
+                return {"skill": skill, "action": "advance", "auto": rng.random() < 0.5}  # may be locked or repeated
+            return rng.choice([None, 5, {"skill": skill}])
+
+        for _ in range(150):
+            history = [event() for _ in range(rng.randrange(0, 60))]
+            targets = rng.choice([d["targets"] for d in PACK.destinations] + [[rng.choice(skills)], [], skills])
+            pin = rng.choice([None, rng.choice(skills), "nope"])
+            state = TUTOR.replay(targets, history, pin=pin, lesson=rng.random() < 0.3)
+            done = {e["skill"] for e in history if isinstance(e, dict) and e.get("action") == "advance"} | {e["skill"] for e in state["append"]}
+            order = [stop["skill"] for stop in state["route"]["stops"]]
+            self.assertEqual(len(set(order)), len(order))
+            if state["current"] and not state["current"]["reviewing"]:
+                self.assertEqual(order[0], state["current"]["skill"])
+                self.assertTrue(PACK.skills[state["current"]["skill"]].hard <= done)
+            if not state["current"]:
+                self.assertTrue(set(state["targets"]) <= done)
+
+    def test_wrong_types_anywhere_in_the_input_are_ignored(self):
+        """Found in review: unhashable values in targets or events used to raise TypeError."""
+        default = sorted(PACK.destinations[0]["targets"])
+        self.assertEqual(TUTOR.replay([["astar"], {}, 7, None], [])["targets"], default)
+        self.assertEqual(TUTOR.replay("astar", [])["targets"], default)
+        state = TUTOR.replay(DEFENSE, [{"skill": [], "action": "explain"}, {"skill": "agents", "action": {}}], pin=[], inspect={})
+        self.assertEqual(state["ignored_events"], 2)
+        self.assertEqual(len(TUTOR.compare_search([[]], "x")), 4)
+
+    def test_long_histories_are_fast_and_keep_early_events(self):
+        """Found in review: history used to be cut to 2000 events, silently undoing early progress."""
+        import time
+        state = TUTOR.replay(["formulation"], [])
+        review = answer(state)
+        history = [{"skill": "agents", "action": "advance", "auto": True}] + [review] * 3000
+        started = time.perf_counter()
+        state = TUTOR.replay(["formulation"], history, pin="agents")
+        self.assertLess(time.perf_counter() - started, 3.0)
+        self.assertEqual({s["id"]: s["status"] for s in state["skills"]}["agents"], "completed")
+        self.assertEqual(state["calibration"]["forecasts"], 3000)
+
+    def test_questions_rotate_after_an_early_mistake(self):
+        """Found in review: two early wrong answers used to trap the learner on those two questions."""
+        history = [{"skill": "agents", "action": "advance", "auto": True}]  # review mode: no step limit
+        asked = []
+        for turn in range(14):
+            state = TUTOR.replay(["formulation"], history, pin="agents")
+            asked.append(state["current"]["item"]["id"])
+            history.append(answer(state, correct=turn >= 2))
+        self.assertEqual(set(asked[6:]), {i.id for i in PACK.items_by_skill["agents"]})
+        self.assertTrue(all(a != b for a, b in zip(asked, asked[1:])))
+
+    def test_a_locked_pin_does_not_cancel_the_skill_in_progress(self):
+        state = TUTOR.replay(DEFENSE, [])
+        first = state["current"]["skill"]
+        state = TUTOR.replay(DEFENSE, [answer(state, correct=False, sure=False)], pin="astar")  # astar is locked
+        self.assertEqual(state["current"]["skill"], first)
+
+    def test_decisions_do_not_depend_on_hash_randomisation(self):
+        """Found in review: summing floats over a set made ties break differently between runs."""
+        import os
+        import subprocess
+        import sys
+        code = ("from bagdar.content import load_pack; from bagdar.tutor import Tutor; t = Tutor(load_pack()); "
+                "s = t.replay(t.pack.destinations[1]['targets'], []); "
+                "print([x['skill'] for x in s['route']['stops']], s['route']['search']['expanded'])")
+        outputs = set()
+        for seed in ("0", "1", "2", "3"):
+            run = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True,
+                                 env={**os.environ, "PYTHONHASHSEED": seed}, cwd=str(__import__("pathlib").Path(__file__).resolve().parent.parent))
+            outputs.add(run.stdout)
+        self.assertEqual(len(outputs), 1)
+
     def test_unknown_targets_fall_back_to_the_default_destination(self):
         state = TUTOR.replay(["nope"], [])
         self.assertEqual(state["targets"], sorted(PACK.destinations[0]["targets"]))

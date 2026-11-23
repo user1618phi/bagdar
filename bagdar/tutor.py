@@ -137,6 +137,7 @@ class Tutor:
         self.minutes_to_master = mdp.expected_cost_to_finish(self.mdp, self.solution.policy, dict(self.model.minutes))
         self.hard = {sid: s.hard for sid, s in self.pack.skills.items()}
         self.soft = {sid: s.soft for sid, s in self.pack.skills.items()}
+        self._advance_threshold = self._find_advance_threshold()
 
     # ------------------------------------------------------------------ HMM
 
@@ -197,6 +198,9 @@ class Tutor:
 
     def advance_threshold(self) -> float:
         """Smallest P(mastered) at which advancing beats practising, when P(unknown) = 0."""
+        return self._advance_threshold
+
+    def _find_advance_threshold(self) -> float:
         for thousandth in range(1001):
             m = thousandth / 1000
             values = self.action_values([0.0, 1.0 - m, m])
@@ -213,9 +217,13 @@ class Tutor:
     # ------------------------------------------------------------------ session
 
     def clean(self, history: list) -> tuple[list[Event], int]:
-        """Keep only well-formed events; malformed input is ignored, never fatal."""
+        """Keep only well-formed events; malformed input is ignored, never fatal.
+
+        Nothing is dropped for being old: an early "advance" matters as much as a late one.
+        The HTTP layer bounds the size of a request instead.
+        """
         events, ignored = [], 0
-        for raw in history[-2000:] if isinstance(history, list) else []:
+        for raw in history if isinstance(history, list) else []:
             event = self._parse(raw)
             if event is None:
                 ignored += 1
@@ -227,10 +235,14 @@ class Tutor:
         if not isinstance(raw, dict):
             return None
         skill, action = raw.get("skill"), raw.get("action")
+        if not isinstance(skill, str) or not isinstance(action, str):
+            return None
         if skill not in self.pack.skills or action not in ACTIONS:
             return None
-        if action != "practice":
+        if action == "advance":
             return Event(skill, action, auto=bool(raw.get("auto")), capped=bool(raw.get("capped")))
+        if action == "explain":
+            return Event(skill, action)
         item = self.pack.items.get(raw.get("item")) if isinstance(raw.get("item"), str) else None
         choice, sure = raw.get("choice"), raw.get("sure")
         if item is None or item.skill != skill or isinstance(choice, bool) or not isinstance(choice, int):
@@ -243,8 +255,8 @@ class Tutor:
         """Choose the next question: unseen first, difficulty matched to the belief.
 
         Level 1 while the skill is probably unknown, level 3 once it is probably mastered.
-        When every question was seen, repeat the one answered wrong most recently, otherwise
-        the one seen longest ago (retrieval practice works on repeated items too).
+        When every question was seen, repeat one whose latest attempt was wrong (the most recent
+        such), otherwise the one seen longest ago; never the same question twice in a row.
         """
         items = self.pack.items_by_skill[skill]
         seen = [e for e in events if e.action == "practice"]
@@ -254,12 +266,13 @@ class Tutor:
         if unseen:
             return min(unseen, key=lambda i: (abs(i.level - target_level), i.level, i.id))
         last_seen = {e.item: n for n, e in enumerate(seen)}
-        last_wrong = {e.item: n for n, e in enumerate(seen) if e.choice != self.pack.items[e.item].answer}
+        # an item counts as wrong only while its latest attempt was wrong: once answered right it rejoins the rotation
+        still_wrong = {e.item: e.choice != self.pack.items[e.item].answer for e in seen}
         previous = seen[-1].item if len(items) > 1 else None
         candidates = [i for i in items if i.id != previous]
-        wrong = [i for i in candidates if i.id in last_wrong]
+        wrong = [i for i in candidates if still_wrong[i.id]]
         if wrong:
-            return max(wrong, key=lambda i: last_wrong[i.id])
+            return max(wrong, key=lambda i: last_seen[i.id])
         return min(candidates, key=lambda i: last_seen[i.id])
 
     def replay(self, targets: list[str], history: list, pin: str | None = None,
@@ -271,11 +284,13 @@ class Tutor:
         inspect  the skill whose HMM trace to return (defaults to the current skill)
         """
         skills = self.pack.skills
-        target_set = frozenset(t for t in targets if t in skills) or frozenset(self.pack.destinations[0]["targets"])
+        target_set = self._targets(targets)
         events, ignored = self.clean(history)
         appended: list[Event] = []
-        if pin not in skills:
+        if not isinstance(pin, str) or pin not in skills:
             pin = None
+        if not isinstance(inspect, str) or inspect not in skills:
+            inspect = None
 
         while True:
             by_skill: dict[str, list[Event]] = {sid: [] for sid in skills}
@@ -304,12 +319,14 @@ class Tutor:
                 auto = Event(current, "advance", auto=True, capped=capped and action != "advance")
                 events.append(auto)
                 appended.append(auto)
-                pin = None
+                if current == pin:
+                    pin = None  # the pinned skill is done; a pin on another skill still stands
+                lesson = False  # a request for the lesson was about the skill that has just been left
                 continue
             break
 
         route = self._describe_route(problem, order)
-        focus = inspect if inspect in skills else (current or (events[-1].skill if events else None))
+        focus = inspect or current or (events[-1].skill if events else None)
         state = {
             "pack": {"id": self.pack.id, "title": self.pack.title},
             "targets": sorted(target_set),
@@ -343,6 +360,11 @@ class Tutor:
             state["current"] = self._describe_current(current, action, values, beliefs[current], by_skill[current], reviewing, lesson)
         return state
 
+    def _targets(self, targets: object) -> frozenset[str]:
+        """The valid target skills, or the first destination when none is valid."""
+        chosen = frozenset(t for t in targets if isinstance(t, str) and t in self.pack.skills) if isinstance(targets, (list, tuple)) else frozenset()
+        return chosen or frozenset(self.pack.destinations[0]["targets"])
+
     def _choose_order(self, problem: search.RouteProblem, plan: search.SearchResult, events: list[Event],
                       completed: frozenset[str], pin: str | None) -> tuple[list[str], float]:
         """Decide the order of skills to show. Returns (order, detour minutes vs the optimum).
@@ -353,9 +375,12 @@ class Tutor:
           equally good routes never make the tutor jump between topics.
         """
         order = list(plan.actions)
-        last = next((e.skill for e in reversed(events) if not e.auto), None)
-        focus = pin if pin is not None and pin not in completed else last
-        if focus is None or focus in completed or not self.hard[focus] <= completed:
+        def available(skill: str | None) -> bool:
+            return skill is not None and skill not in completed and self.hard[skill] <= completed
+
+        last = next((e.skill for e in reversed(events) if e.action != "advance"), None)
+        focus = pin if available(pin) else last  # a pin that is still locked does not cancel the skill in progress
+        if not available(focus):
             return self._coherent(problem, order, keep_first=False), 0.0
         if order and order[0] == focus:
             return self._coherent(problem, order, keep_first=True), 0.0
@@ -364,8 +389,10 @@ class Tutor:
                                            problem.targets, self.model.soft_penalty)
         rest = search.plan_route(rest_problem, log_limit=0)
         detour = first_cost + rest.cost - plan.cost
-        if focus == pin or detour <= 1e-9:
-            return self._coherent(problem, [focus] + rest.actions, keep_first=True), max(0.0, detour)
+        if detour < 1e-9:
+            detour = 0.0  # equal up to rounding: not a detour
+        if focus == pin or detour == 0.0:
+            return self._coherent(problem, [focus] + rest.actions, keep_first=True), detour
         return self._coherent(problem, order, keep_first=False), 0.0
 
     def _coherent(self, problem: search.RouteProblem, order: list[str], keep_first: bool) -> list[str]:
@@ -461,18 +488,20 @@ class Tutor:
                 f"{values['advance']:.2f} for moving on).")
 
     def _describe_last(self, events: list[Event], by_skill: dict[str, list[Event]]) -> dict | None:
-        """Feedback for the most recent real (non-automatic) event."""
-        index = next((n for n in range(len(events) - 1, -1, -1) if not events[n].auto), None)
+        """Feedback for the most recent lesson or answer (an advance carries nothing to explain)."""
+        index = next((n for n in range(len(events) - 1, -1, -1) if events[n].action != "advance"), None)
         if index is None:
             return None
         event = events[index]
         position = sum(1 for e in events[: index + 1] if e.skill == event.skill and e.action != "advance")
         skill_events = [e for e in by_skill[event.skill] if e.action != "advance"][:position]
         trace = hmm.forward(list(self.model.prior), self.steps_for(skill_events))
+        if not trace:
+            return None
         last = {
             "skill": event.skill, "action": event.action,
             "belief_before": trace[-1].prior, "belief_after": trace[-1].predicted,
-            "advanced": [e.to_json() for e in events[index + 1:] if e.auto],
+            "advanced": [e.to_json() for e in events[index + 1:] if e.action == "advance"],
         }
         if event.action == "practice":
             item = self.pack.items[event.item]
@@ -500,18 +529,22 @@ class Tutor:
         unsure = {"n": 0, "correct": 0}
         forecasts: list[tuple[float, bool]] = []
         ledger: list[dict] = []
-        seen: dict[str, list[Event]] = {}
+        beliefs: dict[str, hmm.Vector] = {}  # one running belief per skill: a single pass over the history
         for event in events:
-            before = seen.setdefault(event.skill, [])
+            belief = beliefs.get(event.skill, list(self.model.prior))
             if event.action == "practice":
                 correct = event.choice == self.pack.items[event.item].answer
                 bucket = sure if event.sure else unsure
                 bucket["n"] += 1
                 bucket["correct"] += int(correct)
-                forecast = self.p_correct(self.belief(before))
+                forecast = self.p_correct(belief)  # made from the belief before this answer
                 forecasts.append((forecast, correct))
                 ledger.append({"skill": event.skill, "item": event.item, "forecast": forecast, "correct": correct})
-            before.append(event)
+                belief, _ = hmm.condition(belief, self.model.likelihood(observation_of(correct, bool(event.sure))))
+                belief = hmm.predict(belief, self.model.transition("practice"))
+            elif event.action == "explain":
+                belief = hmm.predict(belief, self.model.transition("explain"))
+            beliefs[event.skill] = belief
         count = len(forecasts)
         return {
             "sure": sure, "unsure": unsure, "forecasts": count,
@@ -576,8 +609,7 @@ class Tutor:
         for event in events:
             by_skill[event.skill].append(event)
         beliefs = {sid: self.belief(by_skill[sid]) for sid in self.pack.skills}
-        target_set = frozenset(t for t in targets if t in self.pack.skills)
-        problem = self.route_problem(completed, target_set, beliefs)
+        problem = self.route_problem(completed, self._targets(targets), beliefs)
         results = [
             search.astar(problem, problem.heuristic, log_limit=0),
             search.uniform_cost_search(problem),
@@ -586,7 +618,7 @@ class Tutor:
         ]
         optimum = results[1].cost
         return [
-            {"algorithm": r.algorithm, "cost": r.cost, "expanded": r.expanded, "generated": r.generated,
+            {"algorithm": r.algorithm, "cost": r.cost if r.found else None, "expanded": r.expanded, "generated": r.generated,
              "max_frontier": r.max_frontier, "stops": len(r.actions), "optimal": abs(r.cost - optimum) < 1e-9,
              "route": r.actions}
             for r in results

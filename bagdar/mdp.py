@@ -77,6 +77,8 @@ def value_iteration(mdp: MDP, theta: float = 1e-10, max_iterations: int = 10_000
         history.append((list(values), residual))
         if residual < theta:
             break
+    else:
+        raise ValueError(f"value iteration did not converge in {max_iterations} sweeps")
     q = {a: [q_value(mdp, values, s, a) for s in range(len(mdp.states))] for a in mdp.actions}
     policy = [greedy_action({a: q[a][s] for a in mdp.actions}) for s in range(len(mdp.states))]
     return ValueIterationResult(values, q, policy, len(history), history)
