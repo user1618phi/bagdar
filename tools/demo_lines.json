@@ -1,0 +1,87 @@
+[
+  {
+    "id": "intro",
+    "show": "",
+    "say": "Bagdar: a GPS for learning. My final project for AI Fundamentals."
+  },
+  {
+    "id": "problem",
+    "show": "Before an exam, you rarely know two things: where you really are, and what to do next.",
+    "say": "Before an exam, you rarely know two things: where you really are, and what to do next."
+  },
+  {
+    "id": "route",
+    "show": "Pick a destination. A* search plans the cheapest route through the prerequisite map: 13 stops, about 67 minutes.",
+    "say": "I pick a destination. A-star search plans the cheapest route through the prerequisite map: thirteen stops, about sixty-seven minutes."
+  },
+  {
+    "id": "prior",
+    "show": "The hidden Markov model starts from a prior over three states: unknown, fragile, mastered.",
+    "say": "The hidden Markov model starts from a prior over three states: unknown, fragile, mastered."
+  },
+  {
+    "id": "bayes",
+    "show": "A wrong, hesitant answer moves the belief: P(unknown) rises from 0.50 to 0.71.",
+    "say": "I answer wrong, and not sure. The belief moves: unknown rises from fifty to seventy-one percent."
+  },
+  {
+    "id": "lesson",
+    "show": "So the Markov decision process picks a lesson over a question: 3.77 against 3.64.",
+    "say": "So the Markov decision process picks a lesson over a question: three point seven seven, against three point six four."
+  },
+  {
+    "id": "question",
+    "show": "After the lesson, a question. Correct and sure is strong evidence.",
+    "say": "After the lesson, a question. Correct and sure is strong evidence."
+  },
+  {
+    "id": "threshold",
+    "show": "P(mastered) passes 0.885 and the tutor moves on. That threshold follows from the costs.",
+    "say": "Mastery passes eighty-eight percent, and the tutor moves on. That threshold follows from the costs."
+  },
+  {
+    "id": "fast",
+    "show": "A learner who already knows a skill passes it in two questions.",
+    "say": "A learner who already knows a skill passes it in two questions."
+  },
+  {
+    "id": "map",
+    "show": "The map. Fill is P(mastered), numbers are the A* order, dashed lines can be skipped.",
+    "say": "The map. Fill is the probability of mastery, numbers are the A-star order, and dashed lines can be skipped."
+  },
+  {
+    "id": "control",
+    "show": "You stay in control: a detour is priced in minutes.",
+    "say": "I stay in control: a detour is priced in minutes."
+  },
+  {
+    "id": "hmm",
+    "show": "Under the hood, every number is shown: the forward algorithm and the Viterbi path.",
+    "say": "Under the hood, every number is shown: the forward algorithm, and the Viterbi path."
+  },
+  {
+    "id": "mdp",
+    "show": "Value iteration converges in 47 sweeps. Unknown: lesson. Fragile: question. Mastered: move on.",
+    "say": "Value iteration converges in forty-seven sweeps. Unknown: lesson. Fragile: question. Mastered: move on."
+  },
+  {
+    "id": "astar",
+    "show": "A* and UCS find the same cost; A* expands a fraction of the states.",
+    "say": "A-star and uniform-cost search find the same cost, but A-star expands a fraction of the states."
+  },
+  {
+    "id": "real",
+    "show": "On 841 real students it never saw, the fitted model forecasts answers with AUC 0.709 and stays calibrated.",
+    "say": "On more than eight hundred real students it never saw, the fitted model forecasts answers most accurately, and stays calibrated."
+  },
+  {
+    "id": "ledger",
+    "show": "A ledger: each forecast is computed from earlier answers, then checked against what happened.",
+    "say": "And a ledger: each forecast is computed from earlier answers, then checked against what happened."
+  },
+  {
+    "id": "outro",
+    "show": "",
+    "say": "Bagdar. Locate, route, steer. Thank you."
+  }
+]

@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>Bagdar launch film</title>
+<link rel="stylesheet" href="../../web/kit.css">
+<link rel="stylesheet" href="../../web/app.css">
+<style>
+  /* A 20-second launch film at 1920x1080. Every frame is a pure function of time: render(t) sets
+     everything from t alone, so frames can be captured one by one (tools/brag/render.mjs).
+     Colours, fonts and components come from the app's own stylesheets. 120 BPM: a beat is 0.5 s,
+     and every cut lands on a beat (3, 6, 10, 14, 17 s). */
+  *, *::before, *::after { transition: none !important; animation: none !important; }  /* time is the only clock */
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+  body { padding: 0; }
+  .scene { position: absolute; inset: 0; padding: 0 190px; display: none; flex-direction: column; justify-content: center; }
+  .scene > .tag:first-child { position: absolute; top: 112px; left: 190px; }
+  .tag { font: 400 28px/1.25 var(--font-mono); color: var(--mut); text-transform: lowercase; }
+  .big { font: 300 150px/1.02 var(--font-heading); letter-spacing: -0.022em; margin: 0; }
+  .mid { font: 300 108px/1.04 var(--font-heading); letter-spacing: -0.022em; margin: 0; }
+  .cols { display: grid; grid-template-columns: 1fr 720px; gap: 90px; align-items: center; margin-top: 0; }
+  .panel-lines > * { border-top: 2px solid var(--line); padding: 32px 0; }
+  .panel-lines > :last-child { border-bottom: 2px solid var(--line); }
+  .m { display: grid; grid-template-columns: 240px 1fr 170px; gap: 30px; align-items: center; padding: 20px 0; font: 400 36px/1 var(--font-mono); color: var(--mut); }
+  .m .v { text-align: right; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .m .bar { height: 7px; }
+  .m.pick .n { color: var(--fg); }
+  .sq { display: inline-block; width: 16px; height: 16px; background: var(--acc); margin-right: 16px; }
+  .ruler2 { position: relative; height: 60px; margin-top: 90px; border-bottom: 2px solid var(--line); transform-origin: left center; }
+  .ruler2 i { position: absolute; bottom: 0; width: 2px; height: 14px; background: var(--tick); }
+  .ruler2 i.long { height: 26px; background: var(--fg); }
+  .ruler2 b { position: absolute; bottom: 38px; left: -9px; width: 18px; height: 18px; background: var(--acc); }
+  .words { display: flex; gap: 60px; margin-top: 54px; }
+  .chip { display: inline-flex; align-items: center; gap: 16px; font: 400 30px/1 var(--font-mono); color: var(--mut); text-transform: lowercase; }
+  .chip::before { content: ""; width: 14px; height: 14px; background: var(--bad); }
+  .btnrow { display: flex; gap: 20px; margin-top: 44px; }
+  .btnrow .btn { font-size: 34px; padding: 28px 38px; border-radius: 22px; }
+  svg.fmap { width: 1160px; height: 637px; overflow: visible; }
+  svg.fmap path { fill: none; stroke: var(--line); stroke-width: 2; }
+  svg.fmap path.soft { stroke-dasharray: 5 7; }
+  svg.fmap rect.box { fill: var(--bg); stroke: var(--tick); stroke-width: 2; }
+  svg.fmap rect.on { stroke: var(--fg); fill: var(--fg); }
+  svg.fmap text { font: 400 19px var(--font-mono); fill: var(--fg); }
+  .count { font: 300 110px/1 var(--font-heading); letter-spacing: -0.022em; }
+  .foot { position: absolute; left: 190px; right: 190px; bottom: 110px; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<section class="scene" id="s1">
+  <p class="big" id="s1a" style="min-height: 153px;"></p>
+  <p class="big acc" id="s1b">Which 7 did you guess?</p>
+</section>
+
+<section class="scene" id="s2">
+  <span class="tag" id="s2tag"><span class="sq" style="background: var(--fg)"></span>bagdar</span>
+  <p class="big" id="s2a">A <span class="acc">GPS</span> for learning.</p>
+  <div class="ruler2" id="s2r"><b id="s2m"></b></div>
+  <div class="words"><span class="tag" id="w1">01 · locate</span><span class="tag" id="w2">02 · route</span><span class="tag" id="w3">03 · steer</span></div>
+</section>
+
+<section class="scene" id="s3">
+  <span class="tag">01 · locate · hidden markov model</span>
+  <div class="cols">
+    <div>
+      <p class="mid" id="s3a">It knows what<br>you <span class="acc">really</span> know.</p>
+      <div class="btnrow" id="s3b"><span class="btn primary">I'm sure</span><span class="btn" id="s3not">Not sure</span></div>
+      <p style="margin-top: 40px;"><span class="chip" id="s3chip">wrong, and not sure</span></p>
+    </div>
+    <div class="panel-lines" id="s3p">
+      <div><span class="tag">belief about this skill</span></div>
+      <div>
+        <div class="m"><span class="n">unknown</span><span class="bar unknown"><i id="b0"></i></span><span class="v" id="v0"></span></div>
+        <div class="m"><span class="n">fragile</span><span class="bar fragile"><i id="b1"></i></span><span class="v" id="v1"></span></div>
+        <div class="m"><span class="n">mastered</span><span class="bar mastered"><i id="b2"></i></span><span class="v" id="v2"></span></div>
+      </div>
+      <div><span class="tag">bayes' rule, after every answer</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene" id="s4">
+  <span class="tag">02 · route · a* search</span>
+  <div class="cols" style="grid-template-columns: 420px 1fr; gap: 0;">
+    <div>
+      <p class="mid" style="font-size: 96px;">It plans the<br><span class="acc">shortest</span><br>way.</p>
+      <p class="count" style="margin-top: 60px;"><span id="s4n">0</span> stops</p>
+      <p class="tag" style="margin-top: 22px;" id="s4min"></p>
+    </div>
+    <svg class="fmap" id="fmap" viewBox="0 0 1020 560"></svg>
+  </div>
+</section>
+
+<section class="scene" id="s5">
+  <span class="tag">03 · steer · markov decision process</span>
+  <div class="cols">
+    <div>
+      <p class="mid">It picks the<br><span class="acc">next step</span>.</p>
+      <p class="tag" style="margin-top: 50px; font-size: 30px;" id="s5why">and shows you why.</p>
+    </div>
+    <div class="panel-lines">
+      <div><span class="tag">expected value of each step</span></div>
+      <div>
+        <div class="m" id="a0"><span class="n">lesson</span><span class="bar"><i id="q0"></i></span><span class="v" id="qv0"></span></div>
+        <div class="m" id="a1"><span class="n">question</span><span class="bar"><i id="q1"></i></span><span class="v" id="qv1"></span></div>
+        <div class="m" id="a2"><span class="n">move on</span><span class="bar"><i id="q2"></i></span><span class="v" id="qv2"></span></div>
+      </div>
+      <div><span class="tag" id="s5pick"></span></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene" id="s6">
+  <p class="big" id="s6a" style="font-size: 230px;"><span class="sq" style="width: 44px; height: 44px; margin-right: 40px;"></span>Bagdar</p>
+  <p class="mid" id="s6b" style="font-size: 72px; margin-top: 40px;">Know where you are. Get where you're going.</p>
+  <div class="foot"><span class="tag" id="s6c">every number shown · 81 tests · zero dependencies</span><span class="tag" id="s6d">github.com/user1618phi/bagdar</span></div>
+</section>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const clamp = (x) => Math.max(0, Math.min(1, x));
+  const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);  // ease-out cubic
+  const span = (t, from, to) => clamp((t - from) / (to - from));
+  const lerp = (a, b, x) => a + (b - a) * x;
+  /** Entrance: fade and rise, driven only by time. */
+  function enter(node, t, at, long = 0.45, shift = 34) {
+    const p = ease(span(t, at, at + long));
+    node.style.opacity = p;
+    node.style.transform = `translateY(${(1 - p) * shift}px)`;
+  }
+
+  // ruler ticks for scene 2
+  for (let i = 0; i <= 40; i += 1) {
+    const tick = document.createElement("i");
+    tick.style.left = `${i * 2.5}%`;
+    if (i % 5 === 0) tick.className = "long";
+    $("s2r").append(tick);
+  }
+
+  // the real skill map: positions and edges come from content/skills.json (injected as window.SKILLS)
+  const ROUTE = ["agents", "formulation", "heuristics", "uninformed", "ucs", "astar", "probability", "bayes", "markov", "hmm", "viterbi", "mdp", "bellman"];
+  const mapNodes = {};
+  function buildMap() {
+    const svg = $("fmap");
+    const ns = "http://www.w3.org/2000/svg";
+    const at = (s) => [60 + s.x * 150, 40 + s.y * 96];
+    const byId = Object.fromEntries(window.SKILLS.map((s) => [s.id, s]));
+    for (const skill of window.SKILLS) {
+      for (const [kind, parents] of [["hard", skill.hard], ["soft", skill.soft]]) {
+        for (const parent of parents) {
+          const [x1, y1] = at(byId[parent]);
+          const [x2, y2] = at(skill);
+          const path = document.createElementNS(ns, "path");
+          path.setAttribute("d", `M${x1 + 11} ${y1} C${(x1 + x2) / 2} ${y1} ${(x1 + x2) / 2} ${y2} ${x2 - 11} ${y2}`);
+          if (kind === "soft") path.setAttribute("class", "soft");
+          svg.append(path);
+        }
+      }
+    }
+    for (const skill of window.SKILLS) {
+      const [x, y] = at(skill);
+      const box = document.createElementNS(ns, "rect");
+      box.setAttribute("x", x - 11); box.setAttribute("y", y - 11); box.setAttribute("width", 22); box.setAttribute("height", 22);
+      box.setAttribute("class", "box");
+      const label = document.createElementNS(ns, "text");
+      label.setAttribute("x", x + 18); label.setAttribute("y", y - 14);
+      const order = ROUTE.indexOf(skill.id);
+      label.textContent = order >= 0 ? String(order + 1).padStart(2, "0") : "";
+      svg.append(box, label);
+      mapNodes[skill.id] = { box, label };
+    }
+  }
+
+  const SCENES = [["s1", 0, 3], ["s2", 3, 6], ["s3", 6, 10], ["s4", 10, 14], ["s5", 14, 17], ["s6", 17, 20.01]];
+  const LINE1 = "You scored 7 out of 10.";
+
+  function render(t) {
+    for (const [id, from, to] of SCENES) {
+      const node = $(id);
+      const active = t >= from && t < to;
+      node.style.display = active ? "flex" : "none";
+      // dip through the background: the old scene leaves in its last 0.22 s, the new one arrives after the cut
+      node.style.opacity = active ? 1 - ease(span(t, to - 0.22, to - 0.02)) * (id === "s6" ? 0 : 1) : 0;
+    }
+
+    // 1. hook: the sentence is typed, the question lands on beat 3 (1.5 s)
+    $("s1a").textContent = LINE1.slice(0, Math.round(span(t, 0.15, 1.15) * LINE1.length));
+    enter($("s1b"), t, 1.5, 0.4);
+
+    // 2. reveal
+    enter($("s2tag"), t, 3.05, 0.3, 0);
+    enter($("s2a"), t, 3.05);
+    $("s2r").style.transform = `scaleX(${ease(span(t, 3.3, 4.2))})`;
+    $("s2r").style.opacity = span(t, 3.3, 3.5);
+    $("s2m").style.transform = `translateX(${ease(span(t, 3.9, 5.5)) * 0.62 * 1540}px)`;
+    enter($("w1"), t, 4.0, 0.3, 16); enter($("w2"), t, 4.5, 0.3, 16); enter($("w3"), t, 5.0, 0.3, 16);
+
+    // 3. locate: a press on "Not sure" at 7.0, then the belief moves
+    enter($("s3a"), t, 6.05);
+    enter($("s3b"), t, 6.35, 0.35, 20);
+    enter($("s3p"), t, 6.2, 0.5, 0);
+    const press = span(t, 6.95, 7.05) - span(t, 7.05, 7.4);
+    $("s3not").style.transform = `scale(${1 - 0.07 * press})`;
+    $("s3not").style.borderColor = t > 6.95 ? "var(--fg)" : "var(--line)";
+    enter($("s3chip"), t, 7.1, 0.3, 14);
+    const move = ease(span(t, 7.5, 8.6));
+    [[0.5, 0.71], [0.3, 0.2], [0.2, 0.09]].forEach(([from, to], i) => {
+      const value = lerp(from, to, move);
+      $(`b${i}`).style.transform = `scaleX(${value})`;
+      $(`v${i}`).textContent = value.toFixed(2);
+    });
+
+    // 4. route: one stop appears every quarter second from 10.5 s
+    const shown = Math.max(0, Math.min(ROUTE.length, Math.floor((t - 10.5) / 0.25) + 1));
+    ROUTE.forEach((id, index) => {
+      const node = mapNodes[id];
+      if (!node) return;
+      const on = index < shown;
+      node.box.setAttribute("class", on ? "box on" : "box");
+      node.label.style.opacity = on ? 1 : 0;
+    });
+    $("s4n").textContent = String(shown);
+    $("s4min").textContent = shown === ROUTE.length ? "about 67 minutes" : "";
+
+    // 5. steer: values grow, the mark lands on the winner at 15.5 s
+    enter($("s5why"), t, 16.0, 0.35, 16);
+    const grow = ease(span(t, 14.3, 15.3));
+    [[3.77, "3.77"], [3.64, "3.64"], [-10.69, "−10.69"]].forEach(([value, text], i) => {
+      $(`q${i}`).style.transform = `scaleX(${((value + 15) / 25) * grow})`;
+      $(`qv${i}`).textContent = grow > 0.98 ? text : "";
+    });
+    const picked = t >= 15.5;
+    $("a0").className = picked ? "m pick" : "m";
+    $("a0").firstElementChild.innerHTML = `${picked ? '<span class="sq" style="width:14px;height:14px;margin-right:12px"></span>' : ""}lesson`;
+    $("s5pick").textContent = picked ? "unknown skill: teach first, then test" : "";
+
+    // 6. outro
+    enter($("s6a"), t, 17.05, 0.5);
+    enter($("s6b"), t, 17.6, 0.45, 24);
+    enter($("s6c"), t, 18.2, 0.35, 12); enter($("s6d"), t, 18.2, 0.35, 12);
+  }
+
+  window.renderAt = (t) => { render(t); };
+  window.addEventListener("DOMContentLoaded", async () => {
+    if (window.SKILLS) buildMap();
+    await document.fonts.ready;
+    const preview = new URLSearchParams(location.search).get("t");
+    render(preview === null ? 0 : Number(preview));
+    window.READY = true;
+  });
+</script>
+</body>
+</html>
