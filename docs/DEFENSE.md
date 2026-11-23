@@ -5,10 +5,10 @@ Format: 2 minutes problem and objectives, 3 to 5 minutes live demo, 2 minutes on
 ## Before you start
 
 1. Same laptop as in rehearsal, charger in, notifications off, browser zoom 110%.
-2. Terminal: `python -m bagdar` and leave it running. The page opens by itself.
+2. Terminal: `python -m meje` and leave it running. The page opens by itself. If the laptop fails, the same app is live at https://meje-delta.vercel.app.
 3. On the start screen press "erase progress" twice, so the demo starts from zero.
-4. Keep `docs/media/bagdar-demo.mp4` open in a second window. If anything breaks, do not debug for more than 45 seconds: say "let me show the recording of the same session" and play it.
-5. Keep a second terminal ready with `python -m bagdar demo` typed, in case you are asked for console output.
+4. Keep `docs/media/meje-demo.mp4` open in a second window. If anything breaks, do not debug for more than 45 seconds: say "let me show the recording of the same session" and play it.
+5. Keep a second terminal ready with `python -m meje demo` typed, in case you are asked for console output.
 
 ## Part 1. Problem and objectives (2 minutes)
 
@@ -16,7 +16,7 @@ Format: 2 minutes problem and objectives, 3 to 5 minutes live demo, 2 minutes on
 >
 > Chat assistants do not solve this. In a randomised study published in PNAS in 2025, students who practised with unrestricted ChatGPT scored 17 percent lower on the later exam without it. Khan Academy reports that about 15 percent of students who have its AI tutor use it regularly. The missing piece is not more chat. It is knowing what the learner knows and what to do next.
 >
-> My project, Bagdar, treats studying as navigation. Bağdar is the Kazakh word for direction. A GPS does three things: it finds where you are from noisy signals, it plans the cheapest route, and it tells you the next manoeuvre. Bagdar does the same three things with three algorithms from this course: a hidden Markov model, A-star search, and a Markov decision process.
+> My project, Meje, treats studying as navigation. Meje is the Kazakh word for a milestone: the mark you set and move toward. A GPS does three things: it finds where you are from noisy signals, it plans the cheapest route, and it tells you the next manoeuvre. Meje does the same three things with three algorithms from this course: a hidden Markov model, A-star search, and a Markov decision process.
 >
 > My objectives were measurable. First, estimate knowledge as a probability and check that the estimate is honest. Second, always return the cheapest route and prove it against brute force. Third, choose each step by expected value and beat simple rules. Fourth, show every number, so that the decisions can be checked by hand.
 
@@ -107,7 +107,7 @@ Format: 2 minutes problem and objectives, 3 to 5 minutes live demo, 2 minutes on
 
 ## Шпаргалка по-русски
 
-**Идея одной фразой.** Bagdar — навигатор для учёбы: HMM определяет, где ты находишься (что знаешь), A\* строит кратчайший маршрут до цели, MDP говорит, что делать прямо сейчас.
+**Идея одной фразой.** Meje — навигатор для учёбы: HMM определяет, где ты находишься (что знаешь), A\* строит кратчайший маршрут до цели, MDP говорит, что делать прямо сейчас.
 
 **HMM (скрытая марковская модель).** У каждого навыка есть скрытое состояние: не знает, шатко, освоил. Мы его не видим, видим только ответ и уверенность. После каждого ответа два действия: умножаем убеждение на правдоподобие ответа и нормируем (это формула Байеса), затем применяем переход, потому что сам ответ тоже учит. Угадывание (25% при четырёх вариантах) и случайная ошибка заложены в таблицу эмиссий, поэтому один ответ не переворачивает оценку. Витерби даёт самую вероятную историю состояний: вместо суммы берётся максимум.
 

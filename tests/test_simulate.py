@@ -3,9 +3,9 @@
 import random
 import unittest
 
-from bagdar import simulate
-from bagdar.content import load_pack
-from bagdar.tutor import Tutor
+from meje import simulate
+from meje.content import load_pack
+from meje.tutor import Tutor
 
 TUTOR = Tutor(load_pack())
 
@@ -20,7 +20,7 @@ class SimulationTests(unittest.TestCase):
     def test_tutor_beats_the_baselines_and_stays_below_the_oracle(self):
         for build in simulate.LEARNERS.values():
             rows = {row["policy"]: row for row in simulate.compare_policies(TUTOR, build(TUTOR), episodes=3000, seed=5)}
-            tutor = rows["Bagdar (HMM + MDP)"]["payoff"]
+            tutor = rows["Meje (HMM + MDP)"]["payoff"]
             self.assertGreater(tutor, rows["Fixed dose"]["payoff"])
             self.assertGreater(tutor, rows["Lessons only"]["payoff"])
             self.assertGreater(tutor, rows["3-in-a-row"]["payoff"])

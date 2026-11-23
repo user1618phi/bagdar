@@ -3,9 +3,9 @@
 import random
 import unittest
 
-from bagdar import readiness
-from bagdar.content import load_pack
-from bagdar.tutor import Tutor
+from meje import readiness
+from meje.content import load_pack
+from meje.tutor import Tutor
 
 PACK = load_pack()
 TUTOR = Tutor(PACK)
@@ -248,7 +248,7 @@ class RobustnessTests(unittest.TestCase):
         import os
         import subprocess
         import sys
-        code = ("from bagdar.content import load_pack; from bagdar.tutor import Tutor; t = Tutor(load_pack()); "
+        code = ("from meje.content import load_pack; from meje.tutor import Tutor; t = Tutor(load_pack()); "
                 "s = t.replay(t.pack.destinations[1]['targets'], []); "
                 "print([x['skill'] for x in s['route']['stops']], s['route']['search']['expanded'])")
         outputs = set()

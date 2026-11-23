@@ -3,8 +3,8 @@
 import random
 import unittest
 
-from bagdar import realdata
-from bagdar.realdata import BinaryHMM
+from meje import realdata
+from meje.realdata import BinaryHMM
 
 
 def sample_sequences(model, students, length, seed):

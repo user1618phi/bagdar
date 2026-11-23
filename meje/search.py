@@ -4,7 +4,7 @@ Course topic: search and heuristics (week 2).
 Notation follows Russell & Norvig, AIMA ch. 3: g(n) path cost so far, h(n) heuristic estimate
 of the remaining cost, f(n) = g(n) + h(n).
 
-`RouteProblem` is the learning-route problem that Bagdar solves:
+`RouteProblem` is the learning-route problem that Meje solves:
 
     state      the set of skills already completed
     action     study one skill whose hard prerequisites are all completed

@@ -41,7 +41,7 @@ Values are quoted from `web/kit.css`, `web/app.css`, `web/index.html` and `web/j
 | Confidence record | For example "when sure 4/5", "when not 1/3", shown after three answers | Calibration as counts, not as a score to maximise | Natural frequencies: [review](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2015.01186/pdf), secondary |
 | Status marks | `.mark`: an 8px square plus a lowercase word, such as "correct answer" or "your answer" | State never by colour alone | WCAG 2.2 1.4.1; red-green deficiency in about 8% of men of European origin: [Birch 2012](https://pubmed.ncbi.nlm.nih.gov/22472762/) |
 | Map | 18px square nodes; fill height is P(mastered); solid edge required, dashed edge optional; route order "01" beside each stop | Shape, fill, line style and numbers carry the state | WCAG 2.2 1.4.1; open-model evidence is mixed (see Belief) |
-| Dock | Fixed bottom panel, 18px radius, `blur(16px) saturate(1.5)`, three 92px links; hidden on the start screen | Blur only on floating panels | design-core rule |
+| Navigation | Three 92px links in an 18px-radius panel with `blur(16px) saturate(1.5)`. From 900px wide it sits in the top bar and scrolls with the page; on a phone it floats at the bottom. Hidden on the start screen | On a wide screen nothing may cover content, so the panel is part of the header; on a phone the thumb reaches the bottom edge. Blur only on floating panels | design-core rule; overlap found in the end-to-end check and in the owner's review of the demo video |
 | Segmented control | Four 96px tabs; the indicator slides by `translateX` in 560ms on the spring curve, as in the dock | The selection travels instead of blinking | design-core rule |
 | Engine tables | Forward-algorithm trace, Q values, value-iteration sweeps, A* expansions, experiments and the forecast ledger, as right-aligned monospace numbers | Every decision shows its numbers | People leave an algorithm after seeing it err: [Dietvorst, Simmons & Massey 2015](https://faculty.wharton.upenn.edu/wp-content/uploads/2016/11/20-Dietvorst-Simmons-Massey-2015.pdf), secondary. Shown errors are a risk |
 | Press | `scale(.93)` in 110ms; return in 560ms with `cubic-bezier(.34,1.56,.64,1)` | What is pressed springs back | design-core rule |
@@ -52,11 +52,11 @@ Values are quoted from `web/kit.css`, `web/app.css`, `web/index.html` and `web/j
 | Phone layout | At 900px the columns stack and the "why" panel moves under the step. At 520px buttons stretch and the top label hides. The map scrolls sideways | A study tool without a mobile version draws complaints | User complaints on [Hacker News](https://news.ycombinator.com/item?id=43241499); not a study |
 | Dark theme | Follows `prefers-color-scheme` unless the "theme" toggle sets `data-theme`, which is saved | Both themes are equal | design-core rule |
 | Error state | A line in `--bad`, the mark "engine unreachable", the message, "Nothing is lost: your answers are kept in this browser." and "Try again" | The error says what is safe and what to do | design-core rule |
-| Data | Kept in `localStorage` only (key `bagdar.v1`); every access is guarded. The local engine keeps no session state. "erase progress" needs two presses | Learner data stays on the device and the app runs without internet | No study; product decision |
+| Data | Kept in `localStorage` only (key `meje.v1`); every access is guarded. The local engine keeps no session state. "erase progress" needs two presses | Learner data stays on the device and the app runs without internet | No study; product decision |
 
 ## What the evidence does NOT support
 
-- The 85% rule is derived for neural networks trained by gradient descent, not for students ([Wilson et al. 2019](https://pmc.ncbi.nlm.nih.gov/articles/PMC6831579/)). Bagdar sets no such target.
+- The 85% rule is derived for neural networks trained by gradient descent, not for students ([Wilson et al. 2019](https://pmc.ncbi.nlm.nih.gov/articles/PMC6831579/)). Meje sets no such target.
 - Confidence marking alone is not proven to improve learning. The one direct study used a different answer format ([Sparck, Bjork & Bjork 2016](https://link.springer.com/article/10.1186/s41235-016-0003-x), secondary).
 - Streaks raise retention in one company's product, not learning ([Duolingo blog](https://blog.duolingo.com/improving-the-streak), secondary).
 - An open learner model is not proven to improve learning. The 2026 synthesis gives no pooled effect.

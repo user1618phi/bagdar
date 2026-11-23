@@ -2,7 +2,7 @@
 // localStorage can be unavailable (private mode), so every access is guarded and the app
 // still works without it for the length of the visit.
 
-const KEY = "bagdar.v1";
+const KEY = "meje.v1";
 
 const blank = () => ({ destination: null, targets: [], history: [], pin: null, theme: null });
 

@@ -1,4 +1,4 @@
-/* Bagdar app styles. Built on kit.css (design core 0.2.0): every colour, radius, space and easing
+/* Meje app styles. Built on kit.css (design core 0.2.0): every colour, radius, space and easing
    comes from its tokens. Reasons for each decision are in docs/DESIGN.md. */
 
 @font-face {
@@ -180,6 +180,12 @@ caption { caption-side: top; text-align: left; padding-bottom: var(--space-3); f
 .pick { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
 select.field { appearance: none; padding-right: 34px; background-image: linear-gradient(45deg, transparent 50%, var(--mut) 50%), linear-gradient(135deg, var(--mut) 50%, transparent 50%); background-position: right 17px center, right 12px center; background-size: 5px 5px; background-repeat: no-repeat; }
 .pairbar { display: grid; grid-template-columns: 1fr; gap: 3px; min-width: 120px; }
+
+/* ------------------------------------------------------------ wide screens: navigation sits in the top bar, so it never covers content */
+@media (min-width: 900px) {
+  .dock { position: absolute; top: 12px; bottom: auto; }
+  body { padding-bottom: var(--space-16); }
+}
 
 /* ------------------------------------------------------------ phone */
 @media (max-width: 900px) {

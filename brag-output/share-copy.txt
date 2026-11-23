@@ -1,5 +1,5 @@
 You scored 7 out of 10. Which 7 did you guess?
 
-I built Bagdar, a GPS for learning: a hidden Markov model finds what you really know, A* plans the shortest route to your exam, and a Markov decision process picks each next step. Every number is on screen, it runs with one command, and it needs nothing but Python.
+I built Meje, a GPS for learning: a hidden Markov model finds what you really know, A* plans the shortest route to your exam, and a Markov decision process picks each next step. Every number is on screen, it runs with one command, and it needs nothing but Python.
 
-github.com/user1618phi/bagdar
+github.com/user1618phi/meje

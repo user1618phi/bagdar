@@ -7,7 +7,7 @@ import unittest
 import urllib.error
 import urllib.request
 
-from bagdar.server import make_server
+from meje.server import make_server
 
 
 class ServerTests(unittest.TestCase):
@@ -100,8 +100,8 @@ class ServerTests(unittest.TestCase):
         status, body, content_type = self.request("/")
         self.assertEqual(status, 200)
         self.assertIn("text/html", content_type)
-        self.assertIn(b"Bagdar", body)
-        self.assertEqual(self.request("/../bagdar/server.py")[0], 404)
+        self.assertIn(b"Meje", body)
+        self.assertEqual(self.request("/../meje/server.py")[0], 404)
         self.assertEqual(self.request("/missing.js")[0], 404)
 
 

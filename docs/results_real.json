@@ -298,7 +298,7 @@
       ]
     },
     {
-      "model": "Bagdar HMM, assumed numbers",
+      "model": "Meje HMM, assumed numbers",
       "auc": 0.6847828930953115,
       "brier": 0.20671866992574717,
       "log_loss": 0.6096271130155413,
@@ -371,7 +371,7 @@
       ]
     },
     {
-      "model": "Bagdar HMM, fitted",
+      "model": "Meje HMM, fitted",
       "auc": 0.680657993148968,
       "brier": 0.19909871083797978,
       "log_loss": 0.5856471204316337,
@@ -435,7 +435,7 @@
       ]
     },
     {
-      "model": "Bagdar HMM, fitted, prior per skill",
+      "model": "Meje HMM, fitted, prior per skill",
       "auc": 0.7092102590885015,
       "brier": 0.19311451118901438,
       "log_loss": 0.5718177605115098,

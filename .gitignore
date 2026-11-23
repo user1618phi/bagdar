@@ -10,7 +10,7 @@ node_modules/
 build/
 dist/
 
-# public datasets are downloaded on demand (python -m bagdar realdata), never committed
+# public datasets are downloaded on demand (python -m meje realdata), never committed
 data/
 docs/media/raw/
 
@@ -22,3 +22,7 @@ brag-output/work/
 
 # scratch files of the PDF build (tools/build_docs.mjs)
 docs/.build/
+
+.vercel/
+.vercel
+.env*

@@ -15,7 +15,8 @@ import wave
 
 RATE = 44_100
 BEAT = 0.5
-LENGTH = 20.0
+BED = "--bed" in sys.argv  # a quiet bed for under a voice: pad and a sparse arpeggio only, any length
+LENGTH = float(sys.argv[sys.argv.index("--bed") + 1]) if BED else 20.0
 TAU = 2 * math.pi
 mix = [0.0] * int(RATE * LENGTH)
 rng = random.Random(7)
@@ -69,35 +70,44 @@ CHORDS = [("A", "C", "E"), ("A", "C", "E"), ("F", "A", "C"), ("F", "A", "C"), ("
           ("C", "E", "G"), ("G", "B", "D"), ("G", "B", "D"), ("F", "A", "C"), ("C", "E", "G")]  # one per 2-second bar
 CUTS = [3.0, 6.0, 10.0, 14.0, 17.0]
 
-for bar, chord in enumerate(CHORDS):
-    at = bar * 2.0
-    for octave, name in ((2, chord[0]), (3, chord[0]), (3, chord[2]), (4, chord[1])):
-        pad(at, 2.25, hz(name, octave), 0.045)
-    for step in range(8):  # eighth notes
-        t = at + step * BEAT / 2
-        if t >= 3.0:
-            pluck(t, hz(chord[step % 3], 4 + (step // 3) % 2), 0.055)
-        if t >= 6.0 and step % 2 == 1:
-            noise(t, 0.03, 0.035, lambda x: math.exp(-x / 0.008))  # hat on the off-beats
-    for beat in (0, 2):
-        if at + beat * BEAT >= 3.0:
-            kick(at + beat * BEAT, 0.42)
-    if at >= 6.0:
-        for beat in range(4):
-            add(at + beat * BEAT, 0.45, 0.11, lambda t, f=hz(chord[0], 2): math.sin(TAU * f * t) * math.exp(-t / 0.16))
+if BED:
+    for bar in range(int(LENGTH // 2) + 1):
+        chord, at = CHORDS[bar % 8], bar * 2.0
+        for octave, name in ((2, chord[0]), (3, chord[0]), (3, chord[2]), (4, chord[1])):
+            pad(at, 2.25, hz(name, octave), 0.05)
+        for step in (0, 3, 6):  # three soft notes per bar
+            pluck(at + step * BEAT / 2, hz(chord[step % 3], 4), 0.03)
+else:
+    for bar, chord in enumerate(CHORDS):
+        at = bar * 2.0
+        for octave, name in ((2, chord[0]), (3, chord[0]), (3, chord[2]), (4, chord[1])):
+            pad(at, 2.25, hz(name, octave), 0.045)
+        for step in range(8):  # eighth notes
+            t = at + step * BEAT / 2
+            if t >= 3.0:
+                pluck(t, hz(chord[step % 3], 4 + (step // 3) % 2), 0.055)
+            if t >= 6.0 and step % 2 == 1:
+                noise(t, 0.03, 0.035, lambda x: math.exp(-x / 0.008))  # hat on the off-beats
+        for beat in (0, 2):
+            if at + beat * BEAT >= 3.0:
+                kick(at + beat * BEAT, 0.42)
+        if at >= 6.0:
+            for beat in range(4):
+                add(at + beat * BEAT, 0.45, 0.11, lambda t, f=hz(chord[0], 2): math.sin(TAU * f * t) * math.exp(-t / 0.16))
 
-# effects, on the same grid and in the same key
-for index in range(23):  # scene 1: one soft tick per typed character
-    noise(0.15 + index / 23, 0.006, 0.05, lambda x: math.exp(-x / 0.002))
-bell(1.5, hz("A", 4), 0.10)  # the question lands
-for cut in CUTS:
-    noise(cut - 0.35, 0.35, 0.03, lambda x: (x / 0.35) ** 2)  # a breath before the cut
-    bell(cut, hz("C" if cut >= 10 else "A", 5), 0.11)
-SCALE = ["C", "D", "E", "G", "A"]  # scene 4: each stop of the route is the next note of the pentatonic scale
-for stop in range(13):
-    pluck(10.5 + stop * 0.25, hz(SCALE[stop % 5], 5 + stop // 5), 0.085, decay=0.16)
-bell(15.5, hz("E", 5), 0.13)  # the mark lands on the chosen step
-bell(17.0, hz("G", 5), 0.08)
+    # effects, on the same grid and in the same key
+    for index in range(23):  # scene 1: one soft tick per typed character
+        noise(0.15 + index / 23, 0.006, 0.05, lambda x: math.exp(-x / 0.002))
+    bell(1.5, hz("A", 4), 0.10)  # the question lands
+    for cut in CUTS:
+        noise(cut - 0.35, 0.35, 0.03, lambda x: (x / 0.35) ** 2)  # a breath before the cut
+        bell(cut, hz("C" if cut >= 10 else "A", 5), 0.11)
+    SCALE = ["C", "D", "E", "G", "A"]  # scene 4: each stop of the route is the next note of the pentatonic scale
+    for stop in range(13):
+        pluck(10.5 + stop * 0.25, hz(SCALE[stop % 5], 5 + stop // 5), 0.085, decay=0.16)
+    bell(15.5, hz("E", 5), 0.13)  # the mark lands on the chosen step
+    bell(17.0, hz("G", 5), 0.08)
+
 
 with wave.open(sys.argv[1], "wb") as out:
     out.setnchannels(2)
@@ -106,7 +116,7 @@ with wave.open(sys.argv[1], "wb") as out:
     frames = bytearray()
     for index, value in enumerate(mix):
         t = index / RATE
-        value *= min(1.0, t / 0.02) * min(1.0, (LENGTH - t) / 1.4)  # fade in and out
+        value *= min(1.0, t / (1.5 if BED else 0.02)) * min(1.0, (LENGTH - t) / (2.5 if BED else 1.4))  # fade in and out
         sample = int(32767 * math.tanh(1.5 * value) * 0.85)  # soft clip: nothing harsh or spiky
         frames += struct.pack("<hh", sample, sample)
     out.writeframes(bytes(frames))

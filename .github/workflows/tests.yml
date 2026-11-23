@@ -16,4 +16,4 @@ jobs:
       - name: Run the test suite (standard library only, nothing to install)
         run: python -m unittest discover -s tests
       - name: Console walk-through runs
-        run: python -m bagdar demo
+        run: python -m meje demo

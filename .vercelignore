@@ -1,0 +1,11 @@
+# only the engine, the content and the web app are deployed
+docs/media
+docs/*.pdf
+docs/*.md
+docs/slides.html
+brag-output
+tools
+tests
+data
+.github
+Dockerfile

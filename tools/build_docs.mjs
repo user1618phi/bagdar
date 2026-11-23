@@ -15,12 +15,12 @@ const { chromium } = createRequire(process.env.PLAYWRIGHT_FROM || import.meta.ur
 const { marked } = createRequire(process.env.MARKED_FROM || import.meta.url)("marked");
 
 const PAGES = [
-  ["REPORT.md", "Bagdar_Technical_Report.pdf"],
-  ["TEAM_CONTRIBUTION.md", "Bagdar_Team_Contribution_Statement.pdf"],
-  ["AI_USAGE_DECLARATION.md", "Bagdar_AI_Usage_Declaration_Template.pdf"],
-  ["COMPETITION.md", "Bagdar_Competition.pdf"],
-  ["DESIGN.md", "Bagdar_Design_Decisions.pdf"],
-  ["DEFENSE.md", "Bagdar_Defense_Notes.pdf"],
+  ["REPORT.md", "Meje_Technical_Report.pdf"],
+  ["TEAM_CONTRIBUTION.md", "Meje_Team_Contribution_Statement.pdf"],
+  ["AI_USAGE_DECLARATION.md", "Meje_AI_Usage_Declaration_Template.pdf"],
+  ["COMPETITION.md", "Meje_Competition.pdf"],
+  ["DESIGN.md", "Meje_Design_Decisions.pdf"],
+  ["DEFENSE.md", "Meje_Defense_Notes.pdf"],
 ];
 
 const PRINT_CSS = `
@@ -53,8 +53,8 @@ try {
 
   await page.goto(pathToFileURL(join(docs, "slides.html")).href);
   await page.evaluate(() => document.fonts.ready);
-  await page.pdf({ path: join(docs, "Bagdar_Slides.pdf"), width: "1280px", height: "720px", printBackground: true });
-  console.log("Bagdar_Slides.pdf");
+  await page.pdf({ path: join(docs, "Meje_Slides.pdf"), width: "1280px", height: "720px", printBackground: true });
+  console.log("Meje_Slides.pdf");
 
   for (const [source, target] of PAGES) {
     let markdown;
@@ -69,7 +69,7 @@ try {
     await page.evaluate(() => document.fonts.ready);
     await page.pdf({ path: join(docs, target), format: "A4", printBackground: true, preferCSSPageSize: true,
       displayHeaderFooter: true, headerTemplate: "<span></span>",
-      footerTemplate: `<div style="width:100%;font:7pt Menlo,monospace;color:#777;padding:0 18mm;display:flex;justify-content:space-between"><span>bagdar · ${source.replace(".md", "").toLowerCase().replaceAll("_", " ")}</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>` });
+      footerTemplate: `<div style="width:100%;font:7pt Menlo,monospace;color:#777;padding:0 18mm;display:flex;justify-content:space-between"><span>meje · ${source.replace(".md", "").toLowerCase().replaceAll("_", " ")}</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>` });
     console.log(target);
   }
 } finally {

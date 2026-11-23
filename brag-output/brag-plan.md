@@ -1,4 +1,4 @@
-# Brag plan: Bagdar
+# Brag plan: Meje
 
 Made with the brag-slim rules (github.com/latent-spaces/brag): one short film, the real interface, its own soundtrack.
 
@@ -18,6 +18,6 @@ Made with the brag-slim rules (github.com/latent-spaces/brag): one short film, t
 | 3 | 6-10 s | Locate | "It knows what you really know."; a press on "Not sure"; the real belief bars move from 0.50/0.30/0.20 to 0.71/0.20/0.09 | Bass and hats enter |
 | 4 | 10-14 s | Route | "It plans the shortest way."; the real skill map; 13 stops light up one per quarter second | Each stop is a note of the scale |
 | 5 | 14-17 s | Steer | "It picks the next step."; lesson 3.77, question 3.64, move on -10.69; the mark lands on lesson | Bell when the mark lands |
-| 6 | 17-20 s | Outro | "Bagdar. Know where you are. Get where you're going."; repository address | Resolve to C major, fade |
+| 6 | 17-20 s | Outro | "Meje. Know where you are. Get where you're going."; repository address | Resolve to C major, fade |
 
 Every number on screen is produced by the engine for the same situation shown in the app (prior belief, one wrong and hesitant answer, the "Defense day" route). No personal data, secrets or invented claims appear.

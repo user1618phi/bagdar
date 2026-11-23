@@ -19,7 +19,7 @@ cannot test the teaching policy or the route, because nobody in the data was tau
 The subject (school mathematics) also differs from the AI course, so the fitted numbers are
 evidence that the method works on real people, not parameters for the course pack.
 
-Run:  python -m bagdar realdata        (downloads the file once, writes docs/results_real.json)
+Run:  python -m meje realdata        (downloads the file once, writes docs/results_real.json)
 """
 
 from __future__ import annotations
@@ -267,9 +267,9 @@ def run(path: Path = DEFAULT_CSV, iterations: int = 30) -> dict:
         "Skill average": lambda skill, answers: [skill_mean.get(skill, base_rate)] * len(answers),
         "Student's running average": running_average,
         "BKT, 2 states, fitted": bkt.forecast,
-        "Bagdar HMM, assumed numbers": assumed_model.forecast,
-        "Bagdar HMM, fitted": fitted.forecast,
-        "Bagdar HMM, fitted, prior per skill": per_skill.forecast,
+        "Meje HMM, assumed numbers": assumed_model.forecast,
+        "Meje HMM, fitted": fitted.forecast,
+        "Meje HMM, fitted, prior per skill": per_skill.forecast,
     }
     results = []
     for name, forecast in forecasters.items():

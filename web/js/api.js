@@ -10,7 +10,7 @@ async function request(path, body) {
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error("Can't reach the engine. Check that `python -m bagdar` is still running.");
+    throw new Error("Can't reach the engine. Check that `python -m meje` is still running.");
   }
   let data = null;
   try { data = await response.json(); } catch { /* handled below */ }

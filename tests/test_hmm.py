@@ -5,8 +5,8 @@ import math
 import random
 import unittest
 
-from bagdar import hmm
-from bagdar.tutor import TutorModel
+from meje import hmm
+from meje.tutor import TutorModel
 
 # Umbrella world, Russell & Norvig AIMA 4e, section 14.2. States: rain, no rain.
 T = [[0.7, 0.3], [0.3, 0.7]]

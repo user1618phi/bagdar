@@ -2,8 +2,8 @@
 
 import unittest
 
-from bagdar import mdp
-from bagdar.tutor import TutorModel
+from meje import mdp
+from meje.tutor import TutorModel
 
 
 def toy_mdp(gamma=0.9):

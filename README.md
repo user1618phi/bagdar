@@ -1,14 +1,16 @@
-# Bagdar: a GPS for learning
+# Meje: a GPS for learning
 
-Bagdar finds out what you actually know, plans the shortest route to your exam, and picks each next step. Three classical AI algorithms do the work, and every number behind every decision is on screen.
+Meje finds out what you actually know, plans the shortest route to your exam, and picks each next step. Three classical AI algorithms do the work, and every number behind every decision is on screen.
 
-[![tests](https://github.com/user1618phi/bagdar/actions/workflows/tests.yml/badge.svg)](https://github.com/user1618phi/bagdar/actions/workflows/tests.yml)
+**Live demo: https://meje-delta.vercel.app**
 
-*Bağdar* is Kazakh for "direction" or "bearing". Final project for AI Fundamentals (AIF1303), QAIRU, 2026.
+[![tests](https://github.com/user1618phi/meje/actions/workflows/tests.yml/badge.svg)](https://github.com/user1618phi/meje/actions/workflows/tests.yml)
+
+*Meje* (меже) is Kazakh for a milestone: the mark you set and move toward. Final project for AI Fundamentals (AIF1303), QAIRU, 2026.
 
 ![The drive screen: a question, the belief about the learner, the reason for the step and the route](docs/media/02-question.png)
 
-| A GPS needs to | Bagdar's answer | Course topic |
+| A GPS needs to | Meje's answer | Course topic |
 |---|---|---|
 | know where you are, from noisy signals | **Hidden Markov model**: forward filtering and Viterbi over `unknown / fragile / mastered` | Week 7 (with Bayes' rule, week 6) |
 | plan the cheapest route to the destination | **A\* search** over sets of completed skills, with an admissible and consistent heuristic | Week 2 |
@@ -19,19 +21,19 @@ Bagdar finds out what you actually know, plans the shortest route to your exam, 
 Python 3.10 or newer. No packages to install: the engine and the server use the standard library only.
 
 ```bash
-git clone https://github.com/user1618phi/bagdar.git
-cd bagdar
-python -m bagdar
+git clone https://github.com/user1618phi/meje.git
+cd meje
+python -m meje
 ```
 
 The app opens at `http://127.0.0.1:8000`. Other commands:
 
 ```bash
-python -m bagdar demo                  # console walk-through: input -> key steps -> output for each algorithm
+python -m meje demo                  # console walk-through: input -> key steps -> output for each algorithm
 python -m unittest discover -s tests   # 90 tests, a few seconds
-python -m bagdar experiments           # simulated learners; rewrites docs/results.json (seed 7)
-python -m bagdar realdata              # real learners; downloads ASSISTments once, rewrites docs/results_real.json
-python -m bagdar serve --port 8010     # another port
+python -m meje experiments           # simulated learners; rewrites docs/results.json (seed 7)
+python -m meje realdata              # real learners; downloads ASSISTments once, rewrites docs/results_real.json
+python -m meje serve --port 8010     # another port
 ```
 
 The interface has its own end-to-end check (needs Node, `npm i playwright` and Chrome): `node tools/e2e.mjs` walks every screen at five viewport sizes in both themes and fails on a console error, sideways scrolling, clipped text, a control hidden by the dock, a touch target under 40 px, or a broken flow.
@@ -69,13 +71,13 @@ They are chained, not placed side by side. The belief sets both the action value
 | MDP | 3 states, 3 actions, rewards in minutes, discount 0.95 | Value iteration (47 sweeps), then `Q(b,a)` on the belief (QMDP) | Policy `unknown -> lesson, fragile -> question, mastered -> move on`; moving on wins from P(mastered) >= 0.885 when P(unknown) is 0 |
 | A\* | State = set of completed skills; hard prerequisites must come first, each missing soft prerequisite makes a skill 40% slower | `f = g + h`, `h` = base minutes of required skills still missing | Cheapest order of skills; same cost as uniform-cost search with far fewer states |
 
-`python -m bagdar demo` prints a worked example of each with real numbers.
+`python -m meje demo` prints a worked example of each with real numbers.
 
 ## Evidence
 
 ### Real learners
 
-The knowledge model was fitted with Baum-Welch (written from scratch, `bagdar/realdata.py`) on 3,322 students of the public ASSISTments 2009-2010 data and asked to forecast 52,840 answers of 841 students it had never seen.
+The knowledge model was fitted with Baum-Welch (written from scratch, `meje/realdata.py`) on 3,322 students of the public ASSISTments 2009-2010 data and asked to forecast 52,840 answers of 841 students it had never seen.
 
 | Forecaster | AUC | Brier | Accuracy | Calibration error |
 |---|---:|---:|---:|---:|
@@ -83,9 +85,9 @@ The knowledge model was fitted with Baum-Welch (written from scratch, `bagdar/re
 | Skill average | 0.629 | 0.2107 | 68.0% | 0.011 |
 | Student's running average | 0.706 | 0.1989 | 69.3% | 0.056 |
 | BKT, 2 states, fitted | 0.680 | 0.1996 | 70.5% | 0.016 |
-| Bagdar HMM, assumed numbers | 0.685 | 0.2067 | 70.1% | 0.082 |
-| Bagdar HMM, fitted | 0.681 | 0.1991 | 70.5% | 0.011 |
-| **Bagdar HMM, fitted, prior per skill** | **0.709** | **0.1931** | **71.6%** | 0.012 |
+| Meje HMM, assumed numbers | 0.685 | 0.2067 | 70.1% | 0.082 |
+| Meje HMM, fitted | 0.681 | 0.1991 | 70.5% | 0.011 |
+| **Meje HMM, fitted, prior per skill** | **0.709** | **0.1931** | **71.6%** | 0.012 |
 
 Two honest readings. The fitted model with a prior per skill is the most accurate and stays calibrated. Fitted with one shared prior, the model learnt probabilities of a correct answer of `[0.27, 0.64, 0.81]`, close to the `[0.25, 0.65, 0.92]` assumed before seeing any data, except for more slips when mastered (0.81 against 0.92). But a student's own running average ranks answers almost as well (0.706 against 0.709), so the model's edge is calibration, not ranking. These logs test the knowledge model only: nobody in them was taught by this policy or this route.
 
@@ -96,7 +98,7 @@ Two honest readings. The fitted model with a prior per skill is the most accurat
 | Rule | Learners match the model | | Different numbers | | Different theory | |
 |---|---:|---:|---:|---:|---:|---:|
 | | minutes | payoff | minutes | payoff | minutes | payoff |
-| **Bagdar (HMM + MDP)** | 6.48 | **1.97** | 8.87 | **-4.27** | 5.70 | **3.37** |
+| **Meje (HMM + MDP)** | 6.48 | **1.97** | 8.87 | **-4.27** | 5.70 | **3.37** |
 | Three correct in a row | 8.07 | 0.71 | 12.53 | -5.35 | 6.87 | 2.23 |
 | Fixed dose (1 lesson, 3 questions) | 5.00 | -0.53 | 5.00 | -6.15 | 5.00 | 0.66 |
 | Lessons only | 4.00 | -4.60 | 4.00 | -8.10 | 4.00 | -4.87 |
@@ -120,7 +122,7 @@ Mean states expanded over 200 random learners per destination. A\* and uniform-c
 ## Repository map
 
 ```
-bagdar/
+meje/
   hmm.py         forward filtering, Viterbi, log-likelihood
   mdp.py         value iteration, policy evaluation, QMDP
   search.py      A*, UCS, greedy, BFS and the route problem
@@ -145,11 +147,11 @@ The server keeps no session state. The browser owns the history and sends it wit
 The server is the same one command. It binds to this machine by default; `HOST` and `PORT` (or `--host`, `--port`) change that.
 
 ```bash
-docker build -t bagdar .
-docker run -p 8000:8000 bagdar
+docker build -t meje .
+docker run -p 8000:8000 meje
 ```
 
-What is already in place: no third-party code at run time; a strict Content-Security-Policy and the usual security headers on every response; request bodies capped at 1 MB and rejected from the declared length; a 15-second socket timeout; malformed input ignored rather than fatal; no session state on the server, so any number of copies can run behind a load balancer; a `/health` endpoint; a non-root container user. What a public deployment still needs: TLS and rate limiting from a reverse proxy in front.
+What is already in place: no third-party code at run time; a strict Content-Security-Policy and the usual security headers on every response; request bodies capped at 1 MB and rejected from the declared length; a 15-second socket timeout; malformed input ignored rather than fatal; no session state on the server, so any number of copies can run behind a load balancer; a `/health` endpoint; a non-root container user. What a public deployment still needs: rate limiting in front. The live demo runs the same handler as a serverless function on Vercel (`api/index.py`, `vercel.json`), which provides TLS.
 
 ## Adding a course
 
@@ -165,16 +167,16 @@ A course pack is two kinds of JSON file in `content/`: `skills.json` (skills wit
 
 ## Roadmap
 
-1. Fit the teaching parameters from Bagdar's own answer logs with the Baum-Welch code that is already here.
+1. Fit the teaching parameters from Meje's own answer logs with the Baum-Welch code that is already here.
 2. Add forgetting and spaced review.
 3. A pilot with classmates before the final exam, publishing predicted against actual.
 4. A Kazakh-language pack for the UNT, where several official attempts a year allow the forecast to be checked in public.
 
 ## Documents
 
-- [Technical report](docs/REPORT.md) ([PDF](docs/Bagdar_Technical_Report.pdf))
-- [Slides](docs/Bagdar_Slides.pdf)
-- [Demo video, 3 minutes, narrated](docs/media/bagdar-demo.mp4)
+- [Technical report](docs/REPORT.md) ([PDF](docs/Meje_Technical_Report.pdf))
+- [Slides](docs/Meje_Slides.pdf)
+- [Demo video, 2 minutes, narrated](docs/media/meje-demo.mp4)
 - [Launch film, 20 seconds](brag-output/brag.mp4), with its [plan](brag-output/brag-plan.md)
 - [Design decisions and their reasons](docs/DESIGN.md)
 - [Competition](docs/COMPETITION.md)

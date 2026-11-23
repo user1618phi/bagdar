@@ -6,14 +6,14 @@
   "policies": {
     "matched": [
       {
-        "policy": "Bagdar (HMM + MDP)",
+        "policy": "Meje (HMM + MDP)",
         "minutes": 6.47725,
         "mastered": 0.9086,
         "left_unknown": 0.0178,
         "payoff": 1.97375
       },
       {
-        "policy": "Bagdar + lookahead",
+        "policy": "Meje + lookahead",
         "minutes": 6.38205,
         "mastered": 0.90675,
         "left_unknown": 0.01185,
@@ -50,14 +50,14 @@
     ],
     "mismatched": [
       {
-        "policy": "Bagdar (HMM + MDP)",
+        "policy": "Meje (HMM + MDP)",
         "minutes": 8.8736,
         "mastered": 0.71565,
         "left_unknown": 0.1128,
         "payoff": -4.26685
       },
       {
-        "policy": "Bagdar + lookahead",
+        "policy": "Meje + lookahead",
         "minutes": 8.85725,
         "mastered": 0.71825,
         "left_unknown": 0.094,
@@ -94,14 +94,14 @@
     ],
     "foreign": [
       {
-        "policy": "Bagdar (HMM + MDP)",
+        "policy": "Meje (HMM + MDP)",
         "minutes": 5.6955,
         "mastered": 0.93775,
         "left_unknown": 0.0004,
         "payoff": 3.36675
       },
       {
-        "policy": "Bagdar + lookahead",
+        "policy": "Meje + lookahead",
         "minutes": 5.6815,
         "mastered": 0.93595,
         "left_unknown": 0.0004,

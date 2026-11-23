@@ -1,12 +1,12 @@
-// Records the demo video and the README screenshots by driving the real app in a real browser.
-// It doubles as an end-to-end check: any console error or missing element fails the run.
+// Records the demo film and the README screenshots by driving the real app in a real browser.
 //
 //   node tools/record_demo.mjs            (needs: npm i playwright, Google Chrome, ffmpeg)
 //
-// The script starts the app itself on a free port, plays one scripted session with captions,
-// stops the app, and converts the recording to docs/media/bagdar-demo.mp4.
-// Lines come from tools/demo_lines.json. If tools/narrate.mjs has produced voice clips, the film
-// is timed to the voice and the clips are mixed in; otherwise it is a silent film with captions.
+// The film is a 1920x1080 stage with three bands that never overlap: a chapter line at the top,
+// the live app in a frame in the middle, and one caption line at the bottom. The app runs in an
+// iframe and is driven for real: every click and every number in the film is the product itself.
+// Lines come from tools/demo_lines.json; if tools/narrate.mjs has produced voice clips, the film
+// is timed to the voice and the clips are mixed in. Any console error fails the run.
 
 import { spawn, spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
@@ -20,10 +20,18 @@ const { chromium } = require("playwright");
 
 const PORT = 8791;
 const BASE = `http://127.0.0.1:${PORT}`;
-const SIZE = { width: 1366, height: 768 };
+const SIZE = { width: 1920, height: 1080 };
+const APP = { width: 1344, height: 651, scale: 1728 / 1344 };  // the app's own viewport, shown 1.29x larger
+const FRAME = { left: 96, top: 120 };
 const media = join(root, "docs", "media");
 const raw = join(media, "raw");
 mkdirSync(raw, { recursive: true });
+
+const LINES = Object.fromEntries(JSON.parse(readFileSync(join(root, "tools", "demo_lines.json"), "utf8")).map((line) => [line.id, line]));
+const narration = join(media, "narration");
+const VOICE = existsSync(join(narration, "manifest.json")) ? JSON.parse(readFileSync(join(narration, "manifest.json"), "utf8")) : null;
+const TRIM = 0.6;  // seconds cut from the start of the recording (blank page before the stage loads)
+const timeline = [];  // [{ id, at }] in milliseconds from the start of the recording
 
 // The answer key, so the scripted learner can answer right or wrong on purpose.
 const key = new Map();
@@ -31,15 +39,48 @@ for (const file of readdirSync(join(root, "content")).filter((name) => name.star
   for (const item of JSON.parse(readFileSync(join(root, "content", file), "utf8")).items) key.set(item.prompt, item.answer);
 }
 
-const LINES = Object.fromEntries(JSON.parse(readFileSync(join(root, "tools", "demo_lines.json"), "utf8")).map((line) => [line.id, line]));
-const narration = join(media, "narration");
-const VOICE = existsSync(join(narration, "manifest.json")) ? JSON.parse(readFileSync(join(narration, "manifest.json"), "utf8")) : null;
-const SPEED = 1.0;  // playback speed of the voice clips (raise slightly if the film runs over three minutes)
-const TRIM = 0.6;  // seconds cut from the start of the recording (blank page before the app loads)
-const timeline = [];  // [{ id, at }] in milliseconds from the start of the recording
+const STAGE = `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><title>Meje demo</title>
+<link rel="stylesheet" href="/kit.css">
+<style>
+  @font-face { font-family: "Source Serif 4"; src: url("/fonts/SourceSerif4-latin.woff2") format("woff2"); font-weight: 200 900; }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+  .serif { font-family: "Source Serif 4", Georgia, serif; font-weight: 300; letter-spacing: -0.022em; }
+  .mono { font: 400 26px/1.2 var(--font-mono); color: var(--mut); text-transform: lowercase; }
+  #top { position: absolute; left: 96px; right: 96px; top: 0; height: 120px; display: flex; align-items: center; gap: 44px; }
+  #brand { display: flex; align-items: center; gap: 14px; color: var(--fg); }
+  #brand::before { content: ""; width: 14px; height: 14px; background: var(--fg); }
+  #chapter { flex: 1; font-size: 46px; line-height: 1; opacity: 0; transition: opacity .45s; white-space: nowrap; }
+  #progress { position: relative; width: 400px; height: 30px; border-bottom: 2px solid var(--line); }
+  #progress i { position: absolute; bottom: 0; width: 2px; height: 14px; background: var(--tick); }
+  #progress b { position: absolute; left: -8px; bottom: 22px; width: 16px; height: 16px; background: var(--acc); transition: transform .9s cubic-bezier(.22,1.16,.36,1); }
+  #frame { position: absolute; left: ${FRAME.left}px; top: ${FRAME.top}px; width: 1728px; height: 837px; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+  #app { display: block; width: ${APP.width}px; height: ${APP.height}px; border: 0; transform: scale(${APP.scale}); transform-origin: 0 0; }
+  #spot { position: absolute; border-radius: 18px; pointer-events: none; opacity: 0; outline: 2px solid var(--tick);
+    box-shadow: 0 0 0 3000px color-mix(in oklch, var(--bg) 72%, transparent); transition: opacity .4s, top .5s, left .5s, width .5s, height .5s; }
+  #bottom { position: absolute; left: 160px; right: 160px; bottom: 0; height: 123px; display: flex; align-items: center; justify-content: center; text-align: center; }
+  #caption { font: 400 32px/1.3 var(--font-sans); opacity: 0; transition: opacity .3s; }
+  #cursor { position: absolute; left: -12px; top: -12px; z-index: 50; width: 24px; height: 24px; border-radius: 50%; background: var(--fg); opacity: 0;
+    transition: transform .55s cubic-bezier(.32,.72,0,1), opacity .3s; pointer-events: none; }
+  #card { position: absolute; inset: 0; z-index: 60; background: var(--bg); display: flex; flex-direction: column; justify-content: center; padding: 0 190px;
+    opacity: 0; transition: opacity .45s; pointer-events: none; }
+  #card h1 { font-size: 150px; line-height: 1.02; margin: 0; }
+  #card .mono { font-size: 28px; }
+  #card .mono + h1, #card h1 + h1 { margin-top: 22px; }
+  #card h1 + .mono { margin-top: 44px; }
+</style></head><body>
+  <div id="top"><span id="brand" class="mono">meje</span><span id="chapter" class="serif"></span><div id="progress"><b id="marker"></b></div></div>
+  <div id="frame"><iframe id="app" src="/" title="Meje"></iframe><div id="spot"></div></div>
+  <div id="bottom"><span id="caption"></span></div>
+  <div id="cursor"></div>
+  <div id="card"></div>
+  <script>
+    const progress = document.getElementById("progress");
+    for (let i = 0; i <= 4; i += 1) { const tick = document.createElement("i"); tick.style.left = (i * 25) + "%"; progress.append(tick); }
+  </script>
+</body></html>`;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const server = spawn(process.env.PYTHON || "python3", ["-m", "bagdar", "serve", "--no-browser", "--port", String(PORT)], { cwd: root, stdio: "ignore" });
+const server = spawn(process.env.PYTHON || "python3", ["-m", "meje", "serve", "--no-browser", "--port", String(PORT)], { cwd: root, stdio: "ignore" });
 let browser;
 let failed = false;
 
@@ -49,209 +90,237 @@ try {
     await sleep(100);
   }
   browser = await chromium.launch({ channel: "chrome", headless: true });
-  // bypassCSP: the caption and cursor overlays are injected by this script, which the app's own policy would block
-  const context = await browser.newContext({ viewport: SIZE, colorScheme: "light", bypassCSP: true, recordVideo: { dir: raw, size: SIZE } });
+  const context = await browser.newContext({ viewport: SIZE, colorScheme: "light", recordVideo: { dir: raw, size: SIZE } });
+  // The app forbids being framed (X-Frame-Options, CSP). For the recording only, those two headers are removed in transit.
+  await context.route(`${BASE}/**`, async (route) => {
+    const response = await route.fetch();
+    const headers = { ...response.headers() };
+    delete headers["x-frame-options"];
+    delete headers["content-security-policy"];
+    await route.fulfill({ response, headers });
+  });
+  await context.route(`${BASE}/__stage`, (route) => route.fulfill({ contentType: "text/html; charset=utf-8", body: STAGE }));
   const page = await context.newPage();
   const started = Date.now();
   const errors = [];
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
   page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto(`${BASE}/__stage`);
+  const app = page.frameLocator("#app");
+  await app.locator(".destination").first().waitFor();
+  await page.evaluate(() => document.fonts.ready);
 
-  // A visible cursor, a caption bar and title cards, drawn by the recording script only (not part of the app).
-  await page.addInitScript(() => {
-    window.addEventListener("DOMContentLoaded", () => {
-      const style = document.createElement("style");
-      style.textContent = `
-        #demo-cursor { position: fixed; z-index: 99; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
-          background: var(--fg); opacity: .55; pointer-events: none; }
-        #demo-caption { position: fixed; z-index: 98; left: 50%; top: 10px; transform: translateX(-50%); width: min(900px, 92vw);
-          padding: 13px 20px; border-radius: 13px; background: var(--fg); color: var(--bg); font: 400 17px/1.4 "Medeo Sans", sans-serif;
-          text-align: center; opacity: 0; transition: opacity .35s; pointer-events: none; }
-        #demo-spot { position: fixed; z-index: 96; border-radius: 16px; pointer-events: none; opacity: 0;
-          box-shadow: 0 0 0 200vmax color-mix(in oklch, var(--bg) 70%, transparent); outline: 1px solid var(--tick);
-          transition: opacity .4s, top .45s, left .45s, width .45s, height .45s; }
-        #demo-card { position: fixed; inset: 0; z-index: 97; display: grid; place-content: center; gap: 18px; background: var(--bg);
-          text-align: center; opacity: 0; transition: opacity .5s; pointer-events: none; }
-        #demo-card h1 { font-size: 76px; } #demo-card p { margin: 0 auto; font: 400 15px/1.5 "Medeo Mono", monospace; color: var(--mut); }`;
-      document.head.append(style);
-      for (const id of ["demo-spot", "demo-card", "demo-caption", "demo-cursor"]) {
-        const node = document.createElement("div");
-        node.id = id;
-        document.body.append(node);
-      }
-      window.addEventListener("mousemove", (event) => {
-        const cursor = document.getElementById("demo-cursor");
-        cursor.style.left = `${event.clientX}px`;
-        cursor.style.top = `${event.clientY}px`;
-      });
-    });
-  });
-
-  // say() starts a line (caption and voice) and returns at once, so actions can happen while it is spoken;
-  // rest() waits until the line is over.
+  // say() starts a line (caption and voice) and returns at once, so actions happen while it is spoken; rest() waits for its end.
   let lineEnds = 0;
-  const say = async (id, silentHold = 4500) => {
-    const line = LINES[id];
+  const say = async (id, silentHold = 4000) => {
     timeline.push({ id, at: Date.now() - started });
-    lineEnds = Date.now() + (VOICE ? (VOICE[id] / SPEED) * 1000 + 350 : silentHold);
+    lineEnds = Date.now() + (VOICE ? VOICE[id] * 1000 + 350 : silentHold);
     await page.evaluate((text) => {
-      const node = document.getElementById("demo-caption");
+      const node = document.getElementById("caption");
       if (text) node.textContent = text;
       node.style.opacity = text ? "1" : "0";
-    }, line.show);
+    }, LINES[id].show);
   };
   const rest = async (extra = 0) => { await sleep(Math.max(0, lineEnds - Date.now()) + extra); };
-  const card = async (id, title, rows) => {
-    await page.evaluate(([heading, lines]) => {
-      const node = document.getElementById("demo-card");
-      node.innerHTML = "";
-      const h1 = document.createElement("h1");
-      h1.innerHTML = heading;
-      node.append(h1, ...lines.map((row) => Object.assign(document.createElement("p"), { textContent: row })));
+  const quiet = () => page.evaluate(() => { document.getElementById("caption").style.opacity = "0"; });
+
+  /** A full-screen card: a small label, one or two big lines, a small line under them. */
+  const card = async (id, { label = "", title, second = "", sub = "" }, hold = 300) => {
+    await page.evaluate(([l, t, s2, s]) => {
+      const node = document.getElementById("card");
+      node.innerHTML = (l ? `<span class="mono">${l}</span>` : "") + `<h1 class="serif">${t}</h1>` + (s2 ? `<h1 class="serif acc">${s2}</h1>` : "") + (s ? `<span class="mono">${s}</span>` : "");
       node.style.opacity = "1";
-    }, [title, rows]);
-    await sleep(500);
-    await say(id, 4200);
-    await rest(300);
-    await page.evaluate(() => { document.getElementById("demo-card").style.opacity = "0"; });
-    await sleep(600);
+    }, [label, title, second, sub]);
+    await sleep(450);
+    await say(id);
+    await rest(hold);
   };
-  // spot() dims everything except one element, so the viewer knows where to look while a line is spoken
-  const spot = async (selector, pad = 14) => {
-    await page.evaluate(([target, space]) => {
-      const node = document.querySelector(target);
-      const ring = document.getElementById("demo-spot");
-      if (!node) { ring.style.opacity = "0"; return; }
-      const box = node.getBoundingClientRect();
-      Object.assign(ring.style, { top: `${box.top - space}px`, left: `${box.left - space}px`,
-        width: `${box.width + 2 * space}px`, height: `${box.height + 2 * space}px`, opacity: "1" });
-    }, [selector, pad]);
+  const uncard = async () => { await page.evaluate(() => { document.getElementById("card").style.opacity = "0"; }); await sleep(550); };
+  /** The chapter line at the top and the marker on the film's own progress scale. */
+  const chapter = (index, title) => page.evaluate(([i, t]) => {
+    const node = document.getElementById("chapter");
+    node.innerHTML = t;
+    node.style.opacity = "1";
+    document.getElementById("marker").style.transform = `translateX(${i * 100}px)`;
+  }, [index, title]);
+
+  const moveCursor = async (box) => {
+    await page.evaluate(([x, y]) => {
+      const cursor = document.getElementById("cursor");
+      cursor.style.opacity = "0.5";
+      cursor.style.transform = `translate(${x}px, ${y}px)`;
+    }, [box.x + box.width / 2, box.y + Math.min(box.height / 2, 40)]);
+    await sleep(620);
   };
-  const unspot = async () => { await page.evaluate(() => { document.getElementById("demo-spot").style.opacity = "0"; }); await sleep(250); };
-  const click = async (selector, pause = 500) => {
-    await page.locator(selector).first().scrollIntoViewIfNeeded();
-    const box = await page.locator(selector).first().boundingBox();
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 28 });
-    await sleep(220);
-    await page.mouse.down();
-    await sleep(90);
-    await page.mouse.up();
+  const click = async (selector, pause = 600) => {
+    const target = app.locator(selector).first();
+    await target.scrollIntoViewIfNeeded();
+    await sleep(150);
+    await moveCursor(await target.boundingBox());
+    await target.click();
     await sleep(pause);
   };
-  const answer = async ({ correct, sure, pause = 900 }) => {
-    await page.waitForSelector(".option[role=radio]");
-    const prompt = await page.locator(".prompt").innerText();
+  /** Dim everything in the frame except one element, so the viewer knows where to look. */
+  const spot = async (selector, pad = 12) => {
+    const target = app.locator(selector).first();
+    await target.scrollIntoViewIfNeeded();
+    await sleep(200);
+    const box = await target.boundingBox();
+    await page.evaluate(([b, p, f]) => {
+      Object.assign(document.getElementById("spot").style, {
+        left: `${b.x - f.left - p}px`, top: `${b.y - f.top - p}px`, width: `${b.width + 2 * p}px`, height: `${b.height + 2 * p}px`, opacity: "1" });
+    }, [box, pad, FRAME]);
+  };
+  const unspot = async () => { await page.evaluate(() => { document.getElementById("spot").style.opacity = "0"; }); await sleep(300); };
+  const answer = async ({ correct, sure, pause = 800 }) => {
+    await app.locator(".option[role=radio]").first().waitFor();
+    const prompt = await app.locator(".prompt").innerText();
     if (!key.has(prompt)) throw new Error(`no answer key for: ${prompt}`);
     const right = key.get(prompt);
-    await click(`.option >> nth=${correct ? right : (right + 1) % 4}`, 450);
+    await click(`.option >> nth=${correct ? right : (right + 1) % 4}`, 400);
     await click(sure ? "#sure" : "#unsure", pause);
-    await page.waitForSelector("#continue");
+    await app.locator("#continue").waitFor();
   };
-  // screenshots for the README are taken without the caption and the cursor
-  const shot = (name) => page.screenshot({ path: join(media, `${name}.png`), style: "#demo-caption, #demo-cursor, #demo-spot { display: none !important; }" });
+  // README screenshots are taken in a second pass (see below): a screenshot during recording disturbs the video frames
+  const shot = async () => {};
 
   // ------------------------------------------------------------------ the film
-  await page.goto(BASE);
-  await page.waitForSelector(".destination");
-  await card("intro", 'Bagdar: a <span class="acc">GPS</span> for learning', ["AI Fundamentals final project · Mustafa Kassym · QAIRU, 2026", "hmm locates · a* routes · mdp steers"]);
-  await say("problem");
+  await card("hook", { title: "You scored 7 out of 10.", second: "Which 7 did you guess?" }, 500);
+  await card("intro", { label: "ai fundamentals · final project · mustafa kassym", title: 'Meje: a <span class="acc">GPS</span> for learning', sub: "where am i · what next · which way" }, 400);
   await shot("01-start");
-  await rest();
-
-  await say("route");
-  await sleep(1300);
-  await click("text=Plan my route", 1100);
-  await page.waitForSelector(".option");
-  await spot(".journey", 10);
-  await rest();
-  await say("prior");
-  await spot(".why > section:nth-of-type(1)");
-  await shot("02-question");
-  await rest();
+  await chapter(0, "Choose a destination");
+  await uncard();
+  await say("dest");
+  await click("text=Plan my route", 900);
+  await app.locator(".option").first().waitFor();
+  await spot(".journey", 8);
+  await rest(500);
   await unspot();
+  await quiet();
 
-  await say("bayes");
+  await card("q1", { label: "question 1 of 3 · hidden markov model", title: 'Where <span class="acc">am I</span>?' });
+  await chapter(1, 'Where am I? <span class="mono">&nbsp; hidden markov model</span>');
+  await uncard();
+  await shot("02-question");
+  await say("answer");
   await answer({ correct: false, sure: false });
+  await rest(200);
+  await say("belief");
   await spot(".why > section:nth-of-type(1)");
   await shot("03-feedback");
-  await rest();
+  await rest(300);
   await unspot();
-  await click("#continue", 900);
-  await say("lesson");
+  await quiet();
+
+  await card("q2", { label: "question 2 of 3 · markov decision process", title: 'What should I do <span class="acc">now</span>?' });
+  await chapter(2, 'What should I do now? <span class="mono">&nbsp; markov decision process</span>');
+  await click("#continue", 700);  // behind the card: the lesson is on screen when it lifts
+  await uncard();
+  await say("decide");
   await spot(".why > section:nth-of-type(2)");
   await shot("04-lesson");
-  await rest();
-  await unspot();
-  await click("#continue", 900);
-
-  await say("question");
-  await answer({ correct: true, sure: true });
   await rest(300);
-  await click("#continue", 800);
+  await unspot();
+  await say("moveon");
+  await click("#continue", 700);
   await answer({ correct: true, sure: true });
-  await say("threshold");
+  await click("#continue", 600);
+  await answer({ correct: true, sure: true });
   await spot(".verdict");
   await shot("05-checkpoint");
-  await rest();
-  await unspot();
-  await click("#continue", 800);
-
-  await say("fast");
-  for (let i = 0; i < 4; i += 1) {
-    await answer({ correct: true, sure: true, pause: 500 });
-    await sleep(350);
-    await click("#continue", 500);
-  }
-  await shot("06-progress");
-  await rest();
-
-  await click("#dock a[data-view=map]", 1100);
-  await say("map");
-  await shot("07-map");
-  await rest();
-  await say("control");
-  await click(".map .node >> nth=19", 800);  // perceptron: unlocked, off the route, so the detour has a price
-  await click("text=Study this now", 1500);
-  await page.locator("text=Your detour adds").scrollIntoViewIfNeeded();
-  await spot(".why > section:nth-of-type(3)");
   await rest(900);
   await unspot();
-  await click("text=back to the planned route", 1000);
+  await quiet();
 
-  await click("#dock a[data-view=engine]", 1100);
-  await say("hmm");
+  await card("q3", { label: "question 3 of 3 · a* search", title: 'Which way is the <span class="acc">shortest</span>?' });
+  await chapter(3, 'Which way is the shortest? <span class="mono">&nbsp; a* search</span>');
+  await click("#continue", 500);
+  await click("#dock a[data-view=map]", 900);
+  await uncard();
+  await say("route");
+  await shot("07-map");
+  await rest(400);
+  await say("detour");
+  await click(".map .node >> nth=19", 700);  // perceptron: unlocked and off the route, so the detour has a price
+  await click("text=Study this now", 1300);
+  await spot(".why > section:nth-of-type(3)");
+  await shot("06-progress");
+  await rest(900);
+  await unspot();
+  await click("text=back to the planned route", 800);
+  await quiet();
+
+  await card("q4", { label: "and one more", title: 'Can I <span class="acc">check</span> it?' });
+  await chapter(4, 'Can I check it? <span class="mono">&nbsp; every number is shown</span>');
+  await click("#dock a[data-view=engine]", 900);
+  await uncard();
+  await say("open");
   await shot("08-engine-hmm");
-  await rest();
-  await click(".seg button >> nth=1", 800);
-  await say("mdp");
+  await sleep(1700);
+  await click(".seg button >> nth=1", 1500);
   await shot("09-engine-mdp");
-  await sleep(3800);
-  await page.mouse.wheel(0, 420);
-  await rest();
-  await click(".seg button >> nth=2", 800);
-  await say("astar");
-  await click("text=Compare with UCS", 1100);
-  await page.mouse.wheel(0, 500);
+  await click(".seg button >> nth=2", 900);
+  await click("text=Compare with UCS", 900);
   await shot("10-engine-astar");
-  await rest();
-  await click(".seg button >> nth=3", 1100);
-  await page.waitForSelector(".sheet table");
-  await say("real");
+  await rest(300);
+  await click(".seg button >> nth=3", 900);
+  await app.locator(".sheet table").first().waitFor();
+  await say("proof");
   await shot("11-evidence");
-  await rest();
-  await page.locator("text=your own ledger").first().scrollIntoViewIfNeeded();
-  await say("ledger");
-  await rest();
-  await page.mouse.wheel(0, -6000);
-  await page.evaluate(() => { document.getElementById("demo-caption").style.opacity = "0"; });
-  await click("#theme", 1000);
-  await click("#dock a[data-view=drive]", 1400);
-  await shot("12-dark");
-  await card("outro", "Bagdar", ["hmm locates · a* routes · mdp steers", "90 tests · zero dependencies · python -m bagdar", "github.com/user1618phi/bagdar"]);
-  await sleep(700);
+  await rest(500);
+  await quiet();
+
+  await card("outro", { title: "Meje", second: "Know where you are.<br>Get where you're going.", sub: "meje-delta.vercel.app · github.com/user1618phi/meje" }, 1400);
 
   if (errors.length) throw new Error(`console errors: ${errors.join(" | ")}`);
   await context.close();
+
+  // ------------------------------------------------------------------ second pass: clean screenshots for the README
+  const still = await browser.newContext({ viewport: { width: 1366, height: 768 }, colorScheme: "light" });
+  const view = await still.newPage();
+  const snap = async (name) => { await sleep(1100); await view.screenshot({ path: join(media, `${name}.png`) }); };
+  const reply = async (correct, sure) => {
+    await view.waitForSelector(".option[role=radio]");
+    const right = key.get(await view.locator(".prompt").innerText());
+    await view.click(`.option >> nth=${correct ? right : (right + 1) % 4}`);
+    await view.click(sure ? "#sure" : "#unsure");
+    await view.waitForSelector("#continue");
+  };
+  await view.goto(BASE);
+  await view.waitForSelector(".destination");
+  await snap("01-start");
+  await view.click("text=Plan my route");
+  await view.waitForSelector(".option");
+  await snap("02-question");
+  await reply(false, false);
+  await snap("03-feedback");
+  await view.click("#continue");
+  await snap("04-lesson");
+  await view.click("#continue");
+  await reply(true, true);
+  await view.click("#continue");
+  await reply(true, true);
+  await snap("05-checkpoint");
+  await view.click("#continue");
+  for (let i = 0; i < 4; i += 1) { await reply(true, true); await view.click("#continue"); }
+  await snap("06-progress");
+  await view.click("#dock a[data-view=map]");
+  await snap("07-map");
+  await view.click("#dock a[data-view=engine]");
+  await snap("08-engine-hmm");
+  await view.click(".seg button >> nth=1");
+  await snap("09-engine-mdp");
+  await view.click(".seg button >> nth=2");
+  await view.click("text=Compare with UCS");
+  await view.mouse.wheel(0, 500);
+  await snap("10-engine-astar");
+  await view.click(".seg button >> nth=3");
+  await view.waitForSelector(".sheet table");
+  await snap("11-evidence");
+  await view.click("#theme");
+  await view.click("#dock a[data-view=drive]");
+  await snap("12-dark");
+  await still.close();
 } catch (error) {
   failed = true;
   console.error(`recording failed: ${error.message}`);
@@ -263,22 +332,33 @@ try {
 if (failed) process.exit(1);
 
 const source = join(raw, readdirSync(raw).find((name) => name.endsWith(".webm")));
-const target = join(media, "bagdar-demo.mp4");
+const target = join(media, "meje-demo.mp4");
 const args = ["-y", "-ss", String(TRIM), "-i", source];
-const video = ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "21", "-preset", "slow", "-movflags", "+faststart"];
+const video = ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-preset", "slow", "-movflags", "+faststart"];
 if (VOICE) {
-  // each clip is sped up a little and delayed to the moment its caption appeared, then all are mixed
+  // each clip is delayed to the moment its line started, then all are mixed into one track
   const filters = timeline.map(({ id, at }, index) => {
     const delay = Math.max(0, Math.round(at - TRIM * 1000));
     args.push("-i", join(narration, `${id}.mp3`));
-    return `[${index + 1}:a]atempo=${SPEED},adelay=${delay}|${delay}[a${index}]`;
+    return `[${index + 1}:a]adelay=${delay}|${delay}[a${index}]`;
   });
   const mixed = `${timeline.map((_, index) => `[a${index}]`).join("")}amix=inputs=${timeline.length}:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11[voice]`;
-  args.push("-filter_complex", `${filters.join(";")};${mixed}`, "-map", "0:v", "-map", "[voice]", ...video, "-c:a", "aac", "-b:a", "160k", target);
+  // a quiet music bed under the voice, synthesised by tools/brag/music.py for the length of the film
+  const seconds = Math.ceil(timeline[timeline.length - 1].at / 1000 + VOICE[timeline[timeline.length - 1].id] + 3);
+  const bed = join(raw, "bed.wav");
+  const made = spawnSync(process.env.PYTHON || "python3", [join(root, "tools", "brag", "music.py"), bed, "--bed", String(seconds)], { stdio: "inherit" });
+  if (made.status === 0) {
+    args.push("-i", bed);
+    const index = timeline.length + 1;
+    args.push("-filter_complex", `${filters.join(";")};${mixed};[${index}:a]volume=0.5[bed];[voice][bed]amix=inputs=2:normalize=0,alimiter=limit=0.7[out]`,
+      "-map", "0:v", "-map", "[out]", ...video, "-c:a", "aac", "-b:a", "160k", "-shortest", target);
+  } else {
+    args.push("-filter_complex", `${filters.join(";")};${mixed}`, "-map", "0:v", "-map", "[voice]", ...video, "-c:a", "aac", "-b:a", "160k", target);
+  }
 } else {
   args.push(...video, "-an", target);
 }
 const result = spawnSync("ffmpeg", args, { stdio: "ignore" });
-rmSync(raw, { recursive: true, force: true });
 if (result.status !== 0) { console.error("ffmpeg failed"); process.exit(1); }
+rmSync(raw, { recursive: true, force: true });
 console.log(`saved ${target}${VOICE ? " (with narration)" : ""}`);

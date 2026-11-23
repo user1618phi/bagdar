@@ -1,4 +1,4 @@
-# Bagdar: a GPS for learning
+# Meje: a GPS for learning
 
 Technical Report, final project
 
@@ -8,11 +8,12 @@ Technical Report, final project
 - **Course:** AI Fundamentals (AIF1303), QAIRU, Astana, Trimester 1 of 2026-2027
 - **Instructor:** Aizhan Sydykova
 - **Date:** November 2026
-- **Repository:** `https://github.com/user1618phi/bagdar`
+- **Repository:** `https://github.com/user1618phi/meje`
+- **Live demo:** `https://meje-delta.vercel.app`
 
 ## 2. Abstract
 
-Bagdar ("bağdar", Kazakh for direction or bearing) is a study tool that works like a navigator. The learner picks a destination, such as defense day. A hidden Markov model estimates what the learner knows from noisy answers. A* search plans the cheapest order of skills through a prerequisite graph. A Markov decision process, solved by value iteration, chooses each step: a lesson, a question, or moving on. The three are chained through one quantity, the belief. The engine is checked by 90 unit tests, simulation with three kinds of learner, and a held-out test on public answer logs. The algorithms are classical. The contribution is their integration and an evaluation that states its limits.
+Meje ("меже", Kazakh for a milestone, the mark one moves toward) is a study tool that works like a navigator. The learner picks a destination, such as defense day. A hidden Markov model estimates what the learner knows from noisy answers. A* search plans the cheapest order of skills through a prerequisite graph. A Markov decision process, solved by value iteration, chooses each step: a lesson, a question, or moving on. The three are chained through one quantity, the belief. The engine is checked by 90 unit tests, simulation with three kinds of learner, and a held-out test on public answer logs. The algorithms are classical. The contribution is their integration and an evaluation that states its limits.
 
 ## 3. Problem and objectives
 
@@ -52,7 +53,7 @@ flowchart LR
 
 **Dependencies.** None at run time: the engine and the HTTP API use only the Python standard library (3.10 or newer), and the UI is plain JavaScript modules without a build step.
 
-**Content.** The course pack is this course: 20 skills in five groups, 20 micro-lessons (idea, worked example, common trap), 80 four-option questions at three difficulty levels, and five destinations. There is one module per algorithm (`bagdar/hmm.py`, `mdp.py`, `search.py`), and every parameter lives in one dataclass, `TutorModel` in `bagdar/tutor.py`.
+**Content.** The course pack is this course: 20 skills in five groups, 20 micro-lessons (idea, worked example, common trap), 80 four-option questions at three difficulty levels, and five destinations. There is one module per algorithm (`meje/hmm.py`, `mdp.py`, `search.py`), and every parameter lives in one dataclass, `TutorModel` in `meje/tutor.py`.
 
 ## 5. Algorithm 1: hidden Markov model (week 7, with Bayes' rule from week 6)
 
@@ -86,7 +87,7 @@ The order matters. An answer is produced by the knowledge the learner had while 
 
 **Viterbi.** The most likely state sequence uses the same recursion with `max` in place of `sum`, plus back-pointers, in log space [4]. Filtering answers "where is the learner now"; Viterbi answers "what is the most likely story of how they got here".
 
-**Worked example** (from `python -m bagdar demo`): three answers on one skill.
+**Worked example** (from `python -m meje demo`): three answers on one skill.
 
 | Answer | Belief before | P(evidence) | After Bayes | After learning |
 |---|---|---|---|---|
@@ -129,7 +130,7 @@ V(s)          = max_a Q(s, a)                                     Bellman optima
 
 The values match the closed form: `V(fragile) = (-1 + 0.95*0.4*10) / (1 - 0.95*0.6) = 6.512`.
 
-**Acting on a belief: QMDP.** The true state is hidden, so the exact problem is a POMDP. Bagdar uses the QMDP approximation [6]:
+**Acting on a belief: QMDP.** The true state is hidden, so the exact problem is a POMDP. Meje uses the QMDP approximation [6]:
 
 ```
 Q(b, a) = sum_s b(s) * Q*(s, a)
@@ -220,7 +221,7 @@ Each link is visible. A wrong, hesitant answer raises P(unknown) to 0.71; the MD
 
 ### 9.2 Simulation experiments
 
-Source: `docs/results.json`, seed 7, reproduced by `python -m bagdar experiments`. One episode is one learner on one skill until the rule advances; 20,000 episodes per rule. Payoff is the advance reward for the true final state minus minutes spent.
+Source: `docs/results.json`, seed 7, reproduced by `python -m meje experiments`. One episode is one learner on one skill until the rule advances; 20,000 episodes per rule. Payoff is the advance reward for the true final state minus minutes spent.
 
 Three learner types are used, because learner models are often wrong in both parameters and form [8]:
 
@@ -228,14 +229,14 @@ Three learner types are used, because learner models are often wrong in both par
 - **mismatched**: same structure, different numbers (more lucky guesses, more slips, slower learning);
 - **foreign**: continuous ability with a logistic response curve, no discrete states.
 
-Rules: Bagdar (HMM and QMDP); Bagdar with a one-step expectimax lookahead over the four possible answers (week 4, ablation only); three correct in a row; a fixed dose (one lesson, three questions); lessons only; and an oracle that sees the true state.
+Rules: Meje (HMM and QMDP); Meje with a one-step expectimax lookahead over the four possible answers (week 4, ablation only); three correct in a row; a fixed dose (one lesson, three questions); lessons only; and an oracle that sees the true state.
 
 Matched learners:
 
 | Rule | Minutes | Truly mastered | Left unknown | Payoff |
 |---|---|---|---|---|
-| Bagdar (HMM + MDP) | 6.48 | 90.9% | 1.8% | 1.97 |
-| Bagdar + lookahead | 6.38 | 90.7% | 1.2% | 2.10 |
+| Meje (HMM + MDP) | 6.48 | 90.9% | 1.8% | 1.97 |
+| Meje + lookahead | 6.38 | 90.7% | 1.2% | 2.10 |
 | 3-in-a-row | 8.07 | 92.4% | 0.8% | 0.71 |
 | Fixed dose | 5.00 | 71.8% | 13.0% | -0.53 |
 | Lessons only | 4.00 | 33.4% | 6.1% | -4.60 |
@@ -245,8 +246,8 @@ Mismatched learners:
 
 | Rule | Minutes | Truly mastered | Left unknown | Payoff |
 |---|---|---|---|---|
-| Bagdar (HMM + MDP) | 8.87 | 71.6% | 11.3% | -4.27 |
-| Bagdar + lookahead | 8.86 | 71.8% | 9.4% | -4.02 |
+| Meje (HMM + MDP) | 8.87 | 71.6% | 11.3% | -4.27 |
+| Meje + lookahead | 8.86 | 71.8% | 9.4% | -4.02 |
 | 3-in-a-row | 12.53 | 83.9% | 4.0% | -5.35 |
 | Fixed dose | 5.00 | 44.9% | 28.9% | -6.15 |
 | Lessons only | 4.00 | 18.4% | 18.5% | -8.10 |
@@ -256,14 +257,14 @@ Foreign learners:
 
 | Rule | Minutes | Truly mastered | Left unknown | Payoff |
 |---|---|---|---|---|
-| Bagdar (HMM + MDP) | 5.70 | 93.8% | 0.0% | 3.37 |
-| Bagdar + lookahead | 5.68 | 93.6% | 0.0% | 3.35 |
+| Meje (HMM + MDP) | 5.70 | 93.8% | 0.0% | 3.37 |
+| Meje + lookahead | 5.68 | 93.6% | 0.0% | 3.35 |
 | 3-in-a-row | 6.87 | 94.2% | 0.4% | 2.23 |
 | Fixed dose | 5.00 | 74.1% | 4.5% | 0.66 |
 | Lessons only | 4.00 | 32.0% | 6.7% | -4.87 |
 | Oracle (sees truth) | 3.89 | 100.0% | 0.0% | 6.11 |
 
-Calibration of the forecast P(correct) under the Bagdar rule:
+Calibration of the forecast P(correct) under the Meje rule:
 
 | Learner | Answers | Brier score | Brier of the base rate | Expected calibration error |
 |---|---|---|---|---|
@@ -283,7 +284,7 @@ Route search, 200 random belief profiles per destination (mean states expanded; 
 
 ### 9.3 Real answer logs: the knowledge model only
 
-`python -m bagdar realdata` fits the HMM with Baum-Welch (expectation-maximisation on the forward-backward recursions, written from scratch) to the public ASSISTments 2009-2010 logs of school mathematics [16]. Students are split so that no test student is seen in fitting: 3,322 to fit, 841 held out, 52,840 held-out answers; 145 skill tags in the data (101 single skills and 44 combinations), 140 of them among the held-out students. Each answer is forecast before it is read. The logs hold right or wrong only, so the confidence signal is unused. The file is downloaded on demand; results are in `docs/results_real.json`.
+`python -m meje realdata` fits the HMM with Baum-Welch (expectation-maximisation on the forward-backward recursions, written from scratch) to the public ASSISTments 2009-2010 logs of school mathematics [16]. Students are split so that no test student is seen in fitting: 3,322 to fit, 841 held out, 52,840 held-out answers; 145 skill tags in the data (101 single skills and 44 combinations), 140 of them among the held-out students. Each answer is forecast before it is read. The logs hold right or wrong only, so the confidence signal is unused. The file is downloaded on demand; results are in `docs/results_real.json`.
 
 | Forecaster | AUC | Brier | Accuracy | Calibration error |
 |---|---|---|---|---|
@@ -291,16 +292,16 @@ Route search, 200 random belief profiles per destination (mean states expanded; 
 | Skill average | 0.629 | 0.2107 | 68.0% | 0.011 |
 | Student's running average | 0.706 | 0.1989 | 69.3% | 0.056 |
 | BKT, 2 states, fitted | 0.680 | 0.1996 | 70.5% | 0.016 |
-| Bagdar HMM, assumed numbers | 0.685 | 0.2067 | 70.1% | 0.082 |
-| Bagdar HMM, fitted | 0.681 | 0.1991 | 70.5% | 0.011 |
-| Bagdar HMM, fitted, prior per skill | 0.709 | 0.1931 | 71.6% | 0.012 |
+| Meje HMM, assumed numbers | 0.685 | 0.2067 | 70.1% | 0.082 |
+| Meje HMM, fitted | 0.681 | 0.1991 | 70.5% | 0.011 |
+| Meje HMM, fitted, prior per skill | 0.709 | 0.1931 | 71.6% | 0.012 |
 
 ### 9.4 What this evidence shows and does not show
 
 It shows:
 
 - The implementation behaves as designed. A* returned the optimal cost in every run while expanding fewer states than UCS.
-- Against three in a row, the Bagdar rule reaches similar mastery in less time on matched and foreign learners (6.48 against 8.07 minutes; 5.70 against 6.87).
+- Against three in a row, the Meje rule reaches similar mastery in less time on matched and foreign learners (6.48 against 8.07 minutes; 5.70 against 6.87).
 - The lookahead changes payoff little (+0.13, +0.24, -0.01), so the product keeps plain QMDP, which can be explained in one line.
 - Not seeing the true state is expensive: 1.97 against 6.45 for the oracle.
 - On real students, the fitted three-state model with a prior per skill has the best AUC, Brier score and accuracy in the table and stays calibrated. The model fitted with one shared prior learnt `P(correct | state)` of (0.27, 0.64, 0.81), against the assumed (0.25, 0.65, 0.92); with a prior per skill the fragile state moves to 0.48.
@@ -309,7 +310,7 @@ It does not show:
 
 - **Any learning gain in real students.** Nobody in the logs was taught by this policy or this route, and the subject is not this course.
 - **A large edge for the model.** A student's running average ranks answers almost as well (AUC 0.706 against 0.709). With assumed numbers the HMM is poorly calibrated on real data (0.082) until fitted.
-- **Robustness to wrong parameters.** On mismatched learners the rule moves on too early: 11.3% of skills are left unknown, against 4.0% for three in a row, which also masters more (83.9% against 71.6%). Bagdar's higher payoff there is measured with its own reward table, and its Brier score is worse than the base rate.
+- **Robustness to wrong parameters.** On mismatched learners the rule moves on too early: 11.3% of skills are left unknown, against 4.0% for three in a row, which also masters more (83.9% against 71.6%). Meje's higher payoff there is measured with its own reward table, and its Brier score is worse than the base rate.
 - **A fair win on matched learners.** A rule tested on its own model wins by construction.
 - **That A-star search is needed everywhere.** On Pathfinding and Decisions all four algorithms are optimal; the search matters only where soft prerequisites create a choice.
 
@@ -346,7 +347,7 @@ The full rationale, with the evidence behind each decision, is in `docs/DESIGN.m
 
 ## 12. Future work
 
-- Fit the tutor's own parameters from Bagdar's answer logs with the Baum-Welch code already in the repository.
+- Fit the tutor's own parameters from Meje's answer logs with the Baum-Welch code already in the repository.
 - Add forgetting (a mastered to fragile transition) and spaced review.
 - Replace QMDP with the one-step lookahead already implemented, or with a POMDP solver, if real data show the gap matters.
 - Build a Kazakh-language pack for the Unified National Test (UNT).
@@ -357,13 +358,13 @@ The full rationale, with the evidence behind each decision, is in `docs/DESIGN.m
 
 | Criterion (points) | Where it is evidenced |
 |---|---|
-| Correct Implementation of Three AI Topics (30) | Sections 5 to 7; `bagdar/hmm.py`, `bagdar/mdp.py`, `bagdar/search.py`; textbook, brute-force and closed-form tests in 9.1 |
+| Correct Implementation of Three AI Topics (30) | Sections 5 to 7; `meje/hmm.py`, `meje/mdp.py`, `meje/search.py`; textbook, brute-force and closed-form tests in 9.1 |
 | Functionality and Stability (20) | Sections 4 and 8; stateless replay, input validation, 12-step cap; API tests on a live server and fuzzed sessions |
 | Testing and Results (15) | Section 9; `tests/`, `docs/results.json`, `docs/results_real.json` |
 | UI/UX (10) | Section 10; `web/`, `docs/DESIGN.md`, `docs/media/` |
 | Code Quality, GitHub Repository and Documentation (10) | Repository link above; `README.md`; one module per algorithm; all parameters in `TutorModel`; formulas in docstrings; this report |
 | Originality and Practical Value (5) | Sections 3 and 8: chaining through the belief, minutes as the single unit, priced detours, calibration ledger |
-| Project Defense and Individual Understanding (10) | `python -m bagdar demo` (input, key steps, output per algorithm); hand calculations in sections 5 to 7; proof sketch in section 7; limitations in section 11 |
+| Project Defense and Individual Understanding (10) | `python -m meje demo` (input, key steps, output per algorithm); hand calculations in sections 5 to 7; proof sketch in section 7; limitations in section 11 |
 
 ## 14. References
 
@@ -384,4 +385,4 @@ Sources marked "(as cited in secondary source)" were not read in the original.
 13. Oreopoulos and Low (2026). NBER Working Paper 35620: a randomised trial of Khanmigo in 18 Tennessee schools over two years. https://www.nber.org/papers/w35620
 14. EdTech Innovation Hub. News report of Khan Academy's statement on Khanmigo usage. https://www.edtechinnovationhub.com/news/only-15-percent-of-students-with-access-to-khanmigo-actually-use-it-khan-academy-admits (as cited in secondary source)
 15. Zhang, J., Vanacore, K., Baker, R. S. et al. (2025). How much mastery is enough mastery? The relationship between mastery in a lesson and the performance on the subsequent lesson. *Educational Data Mining (EDM 2025)*, short paper. https://learninganalytics.upenn.edu/ryanbaker/edm25_short_bkt%20threshold_CR_final.pdf
-16. Feng, M., Heffernan, N. and Koedinger, K. (2009). Addressing the assessment challenge with an online system that tutors as it assesses. *User Modeling and User-Adapted Interaction* 19(3), 243-266. Dataset citation as recorded in `bagdar/realdata.py`.
+16. Feng, M., Heffernan, N. and Koedinger, K. (2009). Addressing the assessment challenge with an online system that tutors as it assesses. *User Modeling and User-Adapted Interaction* 19(3), 243-266. Dataset citation as recorded in `meje/realdata.py`.

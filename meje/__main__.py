@@ -1,10 +1,10 @@
 """Command line entry point.
 
-    python -m bagdar                 start the web app (same as `serve`)
-    python -m bagdar serve           start the web app on http://127.0.0.1:8000
-    python -m bagdar demo            console walk-through: input -> key steps -> output per algorithm
-    python -m bagdar experiments     run the simulation experiments and write docs/results.json
-    python -m bagdar realdata        fit and test the knowledge model on real answer logs (ASSISTments)
+    python -m meje                 start the web app (same as `serve`)
+    python -m meje serve           start the web app on http://127.0.0.1:8000
+    python -m meje demo            console walk-through: input -> key steps -> output per algorithm
+    python -m meje experiments     run the simulation experiments and write docs/results.json
+    python -m meje realdata        fit and test the knowledge model on real answer logs (ASSISTments)
 """
 
 from __future__ import annotations
@@ -130,7 +130,7 @@ def demo() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="bagdar", description="Bagdar: a GPS for learning.")
+    parser = argparse.ArgumentParser(prog="meje", description="Meje: a GPS for learning.")
     commands = parser.add_subparsers(dest="command")
     serve = commands.add_parser("serve", help="start the web app")
     serve.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"))

@@ -4,9 +4,9 @@ import itertools
 import random
 import unittest
 
-from bagdar import search
-from bagdar.content import load_pack
-from bagdar.tutor import Tutor
+from meje import search
+from meje.content import load_pack
+from meje.tutor import Tutor
 
 
 class Graph:

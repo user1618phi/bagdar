@@ -29,6 +29,7 @@ WEB_DIR = ROOT / "web"
 RESULTS_FILE = ROOT / "docs" / "results.json"
 REAL_RESULTS_FILE = ROOT / "docs" / "results_real.json"
 MAX_BODY_BYTES = 1_000_000
+mimetypes.add_type("font/woff2", ".woff2")  # missing from the table on some systems
 
 # Sent with every response. The page needs no third-party origin at all: scripts, styles and
 # fonts are served from here (fonts inside kit.css are data: URIs), and the API is same-origin.
@@ -48,7 +49,7 @@ def build_tutor() -> Tutor:
 
 class Handler(BaseHTTPRequestHandler):
     tutor: Tutor
-    server_version = "Bagdar/1.0"
+    server_version = "Meje/1.0"
 
     timeout = 15  # seconds: a stalled client cannot hold a worker thread forever
 
@@ -84,7 +85,7 @@ class Handler(BaseHTTPRequestHandler):
                     evidence["real"] = json.loads(REAL_RESULTS_FILE.read_text(encoding="utf-8"))
                 self._json(evidence)
             else:
-                self._json({"error": "No results yet. Run: python -m bagdar experiments"}, HTTPStatus.NOT_FOUND)
+                self._json({"error": "No results yet. Run: python -m meje experiments"}, HTTPStatus.NOT_FOUND)
         elif path.startswith("/api/"):
             self._json({"error": "Unknown endpoint"}, HTTPStatus.NOT_FOUND)
         else:
@@ -179,9 +180,9 @@ def serve(host: str = "127.0.0.1", port: int = 8000, open_browser: bool = True, 
     try:
         server = make_server(host, port, verbose)
     except OSError as error:
-        raise SystemExit(f"Cannot start on port {port} ({error.strerror}). Try: python -m bagdar serve --port {port + 1}")
+        raise SystemExit(f"Cannot start on port {port} ({error.strerror}). Try: python -m meje serve --port {port + 1}")
     url = f"http://{host}:{server.server_address[1]}"
-    print(f"Bagdar is running at {url}  (Ctrl+C to stop)")
+    print(f"Meje is running at {url}  (Ctrl+C to stop)")
     if open_browser:
         threading.Timer(0.4, webbrowser.open, args=(url,)).start()
     try:

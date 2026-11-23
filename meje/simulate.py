@@ -12,7 +12,7 @@ What this evidence is and is not:
   on a different theory (continuous ability, no discrete states). The last two show how much of
   the advantage survives when the tutor's model is wrong.
 
-Run:  python -m bagdar experiments      (writes docs/results.json, deterministic for a given seed)
+Run:  python -m meje experiments      (writes docs/results.json, deterministic for a given seed)
 """
 
 from __future__ import annotations
@@ -112,7 +112,7 @@ LEARNERS = {
 def make_policies(tutor: Tutor) -> dict[str, Policy]:
     """The tutor's decision rule and the baselines it is compared against."""
 
-    def bagdar(belief, memory):
+    def meje(belief, memory):
         if memory["steps"] >= tutor.model.max_steps_per_skill:
             return "advance"
         return mdp.greedy_action(tutor.action_values(belief))
@@ -136,7 +136,7 @@ def make_policies(tutor: Tutor) -> dict[str, Policy]:
     def oracle(belief, memory):  # upper bound: sees the true state
         return tutor.solution.policy[memory["true_state"]]
 
-    return {"Bagdar (HMM + MDP)": bagdar, "Bagdar + lookahead": lookahead, "3-in-a-row": streak,
+    return {"Meje (HMM + MDP)": meje, "Meje + lookahead": lookahead, "3-in-a-row": streak,
             "Fixed dose": fixed, "Lessons only": lesson_only, "Oracle (sees truth)": oracle}
 
 
@@ -192,7 +192,7 @@ def compare_policies(tutor: Tutor, learner, episodes: int, seed: int) -> list[di
 def calibration(tutor: Tutor, learner, episodes: int, seed: int) -> dict:
     """Are the HMM's forecasts honest? When it says 70%, is the learner right 70% of the time?"""
     rng = random.Random(seed)
-    policy = make_policies(tutor)["Bagdar (HMM + MDP)"]
+    policy = make_policies(tutor)["Meje (HMM + MDP)"]
     forecasts, tracking = [], []
     for _ in range(episodes):
         run = run_episode(tutor, learner, policy, rng)

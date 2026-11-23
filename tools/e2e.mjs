@@ -1,6 +1,7 @@
 // End-to-end check of the interface in a real browser.
 //
 //   node tools/e2e.mjs [screenshot-dir]      (needs: npm i playwright, Google Chrome)
+//   BASE_URL=https://meje-delta.vercel.app node tools/e2e.mjs      the same checks on the deployed copy
 //
 // It starts the app on its own port, walks every screen at five viewport sizes in both themes,
 // and fails on: a console error, horizontal overflow, clipped text, a control covered by the
@@ -19,7 +20,8 @@ const shots = process.argv[2] || null;
 if (shots) mkdirSync(shots, { recursive: true });
 
 const PORT = 8793;
-const BASE = `http://127.0.0.1:${PORT}`;
+const REMOTE = process.env.BASE_URL || null;  // check a deployed copy instead of starting a local one
+const BASE = REMOTE || `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = [[390, 844], [768, 1024], [1024, 768], [1366, 768], [1920, 1080]];
 const failures = [];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -30,7 +32,8 @@ for (const file of readdirSync(join(root, "content")).filter((name) => name.star
 }
 
 function startServer() {
-  return spawn(process.env.PYTHON || "python3", ["-m", "bagdar", "serve", "--no-browser", "--port", String(PORT)], { cwd: root, stdio: "ignore" });
+  if (REMOTE) return { kill() {} };
+  return spawn(process.env.PYTHON || "python3", ["-m", "meje", "serve", "--no-browser", "--port", String(PORT)], { cwd: root, stdio: "ignore" });
 }
 async function waitForServer() {
   for (let i = 0; i < 80; i += 1) {
@@ -80,10 +83,10 @@ async function dockClear(page) {
     await new Promise((resolve) => setTimeout(resolve, 60));
     const dock = document.getElementById("dock");
     if (dock.hidden) return [];
-    const top = dock.getBoundingClientRect().top;
+    const d = dock.getBoundingClientRect();
     const covered = [...document.querySelectorAll("main .btn, main .textlink")].filter((node) => {
-      const r = node.getBoundingClientRect();
-      return r.height > 0 && r.bottom > top + 1 && r.top < window.innerHeight;
+      const r = node.getBoundingClientRect();  // a real overlap of the two rectangles, wherever the dock sits
+      return r.height > 0 && r.bottom > d.top + 1 && r.top < d.bottom - 1 && r.right > d.left + 1 && r.left < d.right - 1;
     });
     window.scrollTo(0, 0);
     return covered.map((node) => `dock covers "${node.textContent.trim()}" at the end of the page`);
@@ -178,7 +181,8 @@ try {
     }
   }
 
-  // recovery: the engine stops in the middle of a session, then comes back
+  // recovery: the engine stops in the middle of a session, then comes back (local runs only)
+  if (REMOTE) throw Object.assign(new Error("skip"), { skip: true });
   const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const page = await context.newPage();
   await page.goto(BASE);
@@ -197,7 +201,7 @@ try {
   await page.waitForSelector("#continue");
   await context.close();
 } catch (error) {
-  failures.push(`the run stopped: ${error.message}`);
+  if (!error.skip) failures.push(`the run stopped: ${error.message}`);
 } finally {
   if (browser) await browser.close();
   server.kill("SIGINT");

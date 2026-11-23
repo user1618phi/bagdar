@@ -191,14 +191,14 @@ function evidence(app, actions) {
        ["P(unknown → fragile)", fmt.p(real.parameters.assumed.transition[0][1]), fmt.p(real.parameters.fitted.transition[0][1])],
        ["P(fragile → mastered)", fmt.p(real.parameters.assumed.transition[1][2]), fmt.p(real.parameters.fitted.transition[1][2])]],
       { numeric: [1, 2] }),
-    h("p", { class: "note", text: `${real.note} Source: ${real.citation}. The honest reading: the fitted model with a prior per skill is the most accurate and stays calibrated, but a student's own running average ranks answers almost as well. Reproduce with: python -m bagdar realdata` }),
+    h("p", { class: "note", text: `${real.note} Source: ${real.citation}. The honest reading: the fitted model with a prior per skill is the most accurate and stays calibrated, but a student's own running average ranks answers almost as well. Reproduce with: python -m meje realdata` }),
     h("div", { class: "ruler", role: "presentation" }),
   ];
 
   return [
     ...realParts,
     h("p", { class: "lead", text: "Simulated learners with a known hidden state, so we can check what is impossible to see in real people: was the skill truly mastered when the tutor moved on?" }),
-    h("p", { class: "note", text: `${data.note} Seed ${data.seed}; reproduce with: python -m bagdar experiments` }),
+    h("p", { class: "note", text: `${data.note} Seed ${data.seed}; reproduce with: python -m meje experiments` }),
     policyTable(`teaching rules · ${data.episodes.toLocaleString("en")} skills each · learners follow the assumed model`, data.policies.matched),
     policyTable("the same rules · learners with different numbers (luckier guesses, slower learning)", data.policies.mismatched),
     policyTable("the same rules · learners built on a different theory (continuous ability, no hidden states)", data.policies.foreign),
