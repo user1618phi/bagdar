@@ -1,0 +1,41 @@
+{
+  "id": "ai-fundamentals",
+  "title": "AI Fundamentals",
+  "source": "QAIRU AIF1303 syllabus, weeks 1-9; Russell & Norvig, Artificial Intelligence: A Modern Approach",
+  "groups": [
+    {"id": "foundations", "name": "Foundations"},
+    {"id": "search", "name": "Search"},
+    {"id": "uncertainty", "name": "Uncertainty"},
+    {"id": "decisions", "name": "Decisions"},
+    {"id": "learning", "name": "Learning"}
+  ],
+  "skills": [
+    {"id": "agents", "name": "Agents and environments", "short": "Agents", "group": "foundations", "week": 1, "hard": [], "soft": [], "effort": 0.8, "x": 0, "y": 1},
+    {"id": "formulation", "name": "Problem formulation", "short": "Formulation", "group": "foundations", "week": 2, "hard": ["agents"], "soft": [], "effort": 0.8, "x": 1, "y": 1},
+    {"id": "uninformed", "name": "Breadth-first and depth-first search", "short": "BFS and DFS", "group": "search", "week": 2, "hard": ["formulation"], "soft": [], "effort": 1.0, "x": 2, "y": 0},
+    {"id": "ucs", "name": "Uniform-cost search", "short": "UCS", "group": "search", "week": 2, "hard": ["uninformed"], "soft": [], "effort": 1.0, "x": 3, "y": 0},
+    {"id": "heuristics", "name": "Heuristics: admissible and consistent", "short": "Heuristics", "group": "search", "week": 2, "hard": ["formulation"], "soft": [], "effort": 1.0, "x": 2, "y": 1},
+    {"id": "astar", "name": "A* search", "short": "A*", "group": "search", "week": 2, "hard": ["ucs", "heuristics"], "soft": [], "effort": 1.3, "x": 4, "y": 0},
+    {"id": "local", "name": "Local search and simulated annealing", "short": "Local search", "group": "search", "week": 3, "hard": ["formulation"], "soft": ["heuristics"], "effort": 1.0, "x": 3, "y": 2},
+    {"id": "minimax", "name": "Minimax and alpha-beta pruning", "short": "Minimax", "group": "search", "week": 4, "hard": ["uninformed"], "soft": [], "effort": 1.2, "x": 3, "y": 1},
+    {"id": "expectimax", "name": "Expectimax", "short": "Expectimax", "group": "search", "week": 4, "hard": ["minimax", "probability"], "soft": [], "effort": 0.9, "x": 4, "y": 2},
+    {"id": "probability", "name": "Probability basics", "short": "Probability", "group": "uncertainty", "week": 6, "hard": [], "soft": [], "effort": 1.0, "x": 0, "y": 4},
+    {"id": "bayes", "name": "Bayes' rule", "short": "Bayes' rule", "group": "uncertainty", "week": 6, "hard": ["probability"], "soft": [], "effort": 1.0, "x": 1, "y": 4},
+    {"id": "bayesnets", "name": "Bayesian networks", "short": "Bayes nets", "group": "uncertainty", "week": 6, "hard": ["bayes"], "soft": [], "effort": 1.2, "x": 2, "y": 5},
+    {"id": "markov", "name": "Markov chains", "short": "Markov chains", "group": "uncertainty", "week": 7, "hard": ["probability"], "soft": [], "effort": 0.9, "x": 1, "y": 3},
+    {"id": "hmm", "name": "Hidden Markov models and filtering", "short": "HMM filtering", "group": "uncertainty", "week": 7, "hard": ["markov", "bayes"], "soft": ["bayesnets"], "effort": 1.3, "x": 3, "y": 4},
+    {"id": "viterbi", "name": "Viterbi algorithm", "short": "Viterbi", "group": "uncertainty", "week": 7, "hard": ["hmm"], "soft": ["ucs"], "effort": 1.2, "x": 4, "y": 4},
+    {"id": "mdp", "name": "Markov decision processes", "short": "MDP", "group": "decisions", "week": 5, "hard": ["markov"], "soft": [], "effort": 1.1, "x": 3, "y": 3},
+    {"id": "bellman", "name": "Bellman equation and value iteration", "short": "Value iteration", "group": "decisions", "week": 5, "hard": ["mdp"], "soft": ["expectimax"], "effort": 1.3, "x": 5, "y": 3},
+    {"id": "qlearning", "name": "Q-learning", "short": "Q-learning", "group": "decisions", "week": 5, "hard": ["bellman"], "soft": [], "effort": 1.1, "x": 6, "y": 3},
+    {"id": "naivebayes", "name": "Naive Bayes and model evaluation", "short": "Naive Bayes", "group": "learning", "week": 8, "hard": ["bayes"], "soft": ["bayesnets"], "effort": 1.0, "x": 3, "y": 5},
+    {"id": "perceptron", "name": "Perceptron and neural networks", "short": "Perceptron", "group": "learning", "week": 9, "hard": [], "soft": ["naivebayes"], "effort": 1.1, "x": 4, "y": 5}
+  ],
+  "destinations": [
+    {"id": "defense", "name": "Defense day", "note": "A*, Viterbi and value iteration: the three algorithms inside this app", "targets": ["astar", "viterbi", "bellman"]},
+    {"id": "final", "name": "Final exam", "note": "Every topic of the course", "targets": ["astar", "local", "expectimax", "bayesnets", "viterbi", "qlearning", "naivebayes", "perceptron"]},
+    {"id": "pathfinding", "name": "Pathfinding", "note": "From problem formulation to A*", "targets": ["astar"]},
+    {"id": "tracking", "name": "Hidden state", "note": "From probability to HMMs and Viterbi", "targets": ["viterbi"]},
+    {"id": "decisions", "name": "Decisions", "note": "From Markov chains to Q-learning", "targets": ["qlearning"]}
+  ]
+}

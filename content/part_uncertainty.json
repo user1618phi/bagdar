@@ -1,0 +1,688 @@
+{
+  "lessons": [
+    {
+      "skill": "probability",
+      "idea": "The joint distribution answers every question: sum out the variables you do not care about (marginalise), then divide by the probability of what you observed (condition).",
+      "example": "P(cavity, toothache) = 0.12 and P(cavity, no toothache) = 0.08, so P(cavity) = 0.12 + 0.08 = 0.20. If P(toothache) = 0.20, then P(cavity | toothache) = 0.12 / 0.20 = 0.6. Since 0.6 differs from 0.20, cavity and toothache are not independent.",
+      "trap": "Mixing up P(A | B) with the joint P(A, B) or with P(B | A): conditioning divides the joint by P(B), the thing you observed."
+    },
+    {
+      "skill": "bayes",
+      "idea": "Bayes' rule turns P(evidence | cause) into P(cause | evidence): posterior = likelihood × prior / evidence. The prior (base rate) matters as much as the accuracy of the test.",
+      "example": "Prevalence 1%, sensitivity 0.9, false-positive rate 0.09. P(positive) = 0.9×0.01 + 0.09×0.99 = 0.0981. P(disease | positive) = 0.009 / 0.0981 ≈ 0.092, so only about 9% of people who test positive are actually ill.",
+      "trap": "Base-rate neglect: reading a sensitivity of 0.9 as a 90% chance of being ill, while ignoring how rare the disease is."
+    },
+    {
+      "skill": "bayesnets",
+      "idea": "A Bayesian network is a DAG in which every node stores P(node | parents). The full joint is simply the product of these local tables, which keeps the model compact.",
+      "example": "Burglary → Alarm ← Earthquake with P(b) = 0.001, P(e) = 0.002, P(a | b, ¬e) = 0.94. Then P(b, ¬e, a) = 0.001 × 0.998 × 0.94 ≈ 0.00094. The network needs 1 + 1 + 4 = 6 numbers; the full joint table over 3 Boolean variables needs 7.",
+      "trap": "Assuming independent causes stay independent once their common effect is observed: given the alarm, news of an earthquake lowers belief in burglary (explaining away)."
+    },
+    {
+      "skill": "markov",
+      "idea": "In a Markov chain the next state depends only on the current state. The transition matrix (each row sums to 1) pushes today's distribution one step forward: π_next = π × P.",
+      "example": "Weather chain: sun→sun 0.9, sun→rain 0.1, rain→sun 0.5, rain→rain 0.5. Starting sunny, after two steps P(sun) = 0.9×0.9 + 0.1×0.5 = 0.86. The stationary distribution solves π = πP: π(sun) = 0.5 / (0.1 + 0.5) ≈ 0.833.",
+      "trap": "Reading the matrix the wrong way round: rows (the from-state) must sum to 1, columns need not, and the stationary distribution is rarely 50/50."
+    },
+    {
+      "skill": "hmm",
+      "idea": "An HMM has a hidden state that evolves as a Markov chain and emits noisy observations. Filtering tracks P(state | evidence so far) by repeating: predict, weight by the evidence, normalise.",
+      "example": "Umbrella world: P(rain) = 0.5 initially, P(rain | rain) = 0.7, P(rain | no rain) = 0.3, P(umbrella | rain) = 0.9, P(umbrella | no rain) = 0.2. Predict: 0.7×0.5 + 0.3×0.5 = 0.5. Umbrella seen: weights 0.9×0.5 = 0.45 and 0.2×0.5 = 0.10. Normalise: P(rain | umbrella) = 0.45 / 0.55 ≈ 0.818.",
+      "trap": "Skipping the prediction step or forgetting to normalise: the weights 0.45 and 0.10 are not probabilities until they are divided by their sum."
+    },
+    {
+      "skill": "viterbi",
+      "idea": "Viterbi finds the single most likely sequence of hidden states. It is the forward recursion with max in place of sum, plus back-pointers to recover the best path.",
+      "example": "Umbrella world, umbrella seen on days 1 and 2. Day 1: m(rain) = 0.5×0.9 = 0.45, m(dry) = 0.5×0.2 = 0.10. Day 2: m(rain) = max(0.45×0.7, 0.10×0.3) × 0.9 = 0.2835 and m(dry) = max(0.45×0.3, 0.10×0.7) × 0.2 = 0.027. Following the back-pointers, the best path is rain, rain.",
+      "trap": "Picking the most likely state at each step separately: that sequence can differ from the most likely path and may even contain an impossible transition."
+    },
+    {
+      "skill": "mdp",
+      "idea": "An MDP models sequential decisions under uncertainty: states, actions, transitions P(s'|s,a), rewards and a discount γ. Its solution is a policy: an action for every state.",
+      "example": "With γ = 0.9 and rewards 1, 1, 1 on three consecutive steps, the return is 1 + 0.9 + 0.81 = 2.71. A reward of 1 at every step forever is worth 1 / (1 − 0.9) = 10, so the infinite sum stays finite and sooner rewards count for more.",
+      "trap": "Treating the solution as a fixed action sequence (a plan): transitions are stochastic, so you need a policy that says what to do in every state you might reach."
+    },
+    {
+      "skill": "bellman",
+      "idea": "The value of a state is the best expected immediate reward plus the discounted value of where you land. Value iteration applies this Bellman update to all states until the values stop changing.",
+      "example": "γ = 0.9. Action a: reward 0, then a state worth 10 with probability 0.8 or a state worth 0 with probability 0.2, so Q(s,a) = 0.8×(0 + 0.9×10) + 0.2×0 = 7.2. Action b: reward 5, then a state worth 0, so Q(s,b) = 5. V(s) = max(7.2, 5) = 7.2 and the greedy action is a.",
+      "trap": "Averaging over actions instead of taking the max, or forgetting to weight each successor state by its probability P(s'|s,a)."
+    },
+    {
+      "skill": "qlearning",
+      "idea": "Q-learning learns action values from experience alone, with no model: after each step it moves Q(s,a) a fraction α towards the target r + γ max_a' Q(s',a').",
+      "example": "Q(s,a) = 2, α = 0.5, γ = 0.9. The agent receives r = 1 and lands in s', where the best Q-value is 4. Target = 1 + 0.9×4 = 4.6. New Q(s,a) = 2 + 0.5×(4.6 − 2) = 3.3.",
+      "trap": "Using the Q-value of the action actually taken next instead of the max over actions in s' (that is SARSA), or overwriting Q with the target instead of moving a fraction α."
+    },
+    {
+      "skill": "naivebayes",
+      "idea": "Naive Bayes scores each class by its prior times the probability of every feature given that class, assuming the features are independent given the class, and then normalises.",
+      "example": "P(spam) = 0.4, P(ham) = 0.6, P(free | spam) = 0.5, P(free | ham) = 0.1. For an email containing 'free': spam score 0.4×0.5 = 0.20, ham score 0.6×0.1 = 0.06. P(spam | free) = 0.20 / 0.26 ≈ 0.769.",
+      "trap": "A word never seen in a class gets probability 0 and wipes out the whole product; Laplace smoothing (add 1 to every count) prevents this."
+    },
+    {
+      "skill": "perceptron",
+      "idea": "A perceptron thresholds a weighted sum of its inputs plus a bias; learning nudges the weights whenever an example is misclassified. It can only draw a straight-line decision boundary.",
+      "example": "w = (0.5, −0.5), b = 0, input x = (1, 1), target y = 1. Sum = 0.5 − 0.5 + 0 = 0; the output is 1 only if the sum is > 0, so the prediction is 0. With η = 0.1: w ← w + 0.1×(1 − 0)×(1, 1) = (0.6, −0.4) and b ← 0.1.",
+      "trap": "Believing one perceptron can learn XOR, or that stacking linear layers helps: without a non-linear activation, many layers collapse into a single linear map."
+    }
+  ],
+  "items": [
+    {
+      "id": "probability-1",
+      "skill": "probability",
+      "level": 1,
+      "prompt": "Which expression defines the conditional probability P(A | B), assuming P(B) > 0?",
+      "options": [
+        "P(A, B) / P(A)",
+        "P(A) × P(B)",
+        "P(A, B) / P(B)",
+        "P(A) + P(B) − P(A, B)"
+      ],
+      "answer": 2,
+      "why": "Conditioning on B keeps only the worlds where B holds and renormalises: P(A | B) = P(A, B) / P(B). Dividing by P(A) instead would give P(B | A)."
+    },
+    {
+      "id": "probability-2",
+      "skill": "probability",
+      "level": 2,
+      "prompt": "Joint distribution: P(rain, traffic) = 0.3, P(rain, no traffic) = 0.1, P(no rain, traffic) = 0.2, P(no rain, no traffic) = 0.4. What is P(rain | traffic)?",
+      "options": [
+        "0.6",
+        "0.3",
+        "0.75",
+        "0.4"
+      ],
+      "answer": 0,
+      "why": "P(traffic) = 0.3 + 0.2 = 0.5, so P(rain | traffic) = 0.3 / 0.5 = 0.6. The value 0.3 is the joint, 0.75 is P(traffic | rain) and 0.4 is the marginal P(rain)."
+    },
+    {
+      "id": "probability-3",
+      "skill": "probability",
+      "level": 2,
+      "prompt": "Given P(A) = 0.4, P(B | A) = 0.5 and P(B | ¬A) = 0.25, what is the marginal probability P(B)?",
+      "options": [
+        "0.2",
+        "0.75",
+        "0.375",
+        "0.35"
+      ],
+      "answer": 3,
+      "why": "Marginalise over A: P(B) = P(B | A)P(A) + P(B | ¬A)P(¬A) = 0.5×0.4 + 0.25×0.6 = 0.20 + 0.15 = 0.35."
+    },
+    {
+      "id": "probability-4",
+      "skill": "probability",
+      "level": 3,
+      "prompt": "Given P(A) = 0.4, P(B) = 0.5 and P(A, B) = 0.2, which statement is correct?",
+      "options": [
+        "A and B are independent, because P(A, B) = P(A) × P(B) = 0.2",
+        "A and B are mutually exclusive, because P(A, B) is less than P(A)",
+        "A and B are dependent, because P(A | B) = 0.4 differs from P(B)",
+        "Independence cannot be decided without also being given P(A | B)"
+      ],
+      "answer": 0,
+      "why": "P(A) × P(B) = 0.4 × 0.5 = 0.2 = P(A, B), which is the definition of independence; equivalently P(A | B) = 0.2 / 0.5 = 0.4 = P(A). Mutually exclusive events would have P(A, B) = 0."
+    },
+    {
+      "id": "bayes-1",
+      "skill": "bayes",
+      "level": 1,
+      "prompt": "In Bayes' rule P(H | E) = P(E | H) P(H) / P(E), what is the term P(E | H) called?",
+      "options": [
+        "The prior probability of H",
+        "The posterior probability of H",
+        "The likelihood of the evidence given H",
+        "The marginal probability of E"
+      ],
+      "answer": 2,
+      "why": "P(E | H) is the likelihood: how probable the evidence is if the hypothesis is true. P(H) is the prior, P(H | E) the posterior and P(E) the evidence (normalising constant)."
+    },
+    {
+      "id": "bayes-2",
+      "skill": "bayes",
+      "level": 2,
+      "prompt": "A disease affects 1% of people. A test has sensitivity 0.8 and false-positive rate 0.1. What is the probability that a randomly chosen person tests positive?",
+      "options": [
+        "0.107",
+        "0.008",
+        "0.9",
+        "0.8"
+      ],
+      "answer": 0,
+      "why": "Total probability: P(+) = P(+ | D)P(D) + P(+ | ¬D)P(¬D) = 0.8×0.01 + 0.1×0.99 = 0.008 + 0.099 = 0.107."
+    },
+    {
+      "id": "bayes-3",
+      "skill": "bayes",
+      "level": 2,
+      "prompt": "A disease has prevalence 20%. A test has sensitivity 0.9 and false-positive rate 0.15. A patient tests positive. What is P(disease | positive)?",
+      "options": [
+        "0.9",
+        "0.18",
+        "0.857",
+        "0.6"
+      ],
+      "answer": 3,
+      "why": "P(D | +) = 0.9×0.2 / (0.9×0.2 + 0.15×0.8) = 0.18 / (0.18 + 0.12) = 0.6. The value 0.18 is the unnormalised numerator, and 0.857 ignores the prior."
+    },
+    {
+      "id": "bayes-4",
+      "skill": "bayes",
+      "level": 3,
+      "prompt": "A disease has prevalence 1%. A test has sensitivity 0.9 and false-positive rate 0.1. A randomly chosen person tests positive. Which conclusion is correct?",
+      "options": [
+        "P(disease | positive) = 0.9: the test detects 90% of sick people",
+        "P(disease | positive) = 0.009: multiply sensitivity by prevalence",
+        "P(disease | positive) ≈ 0.917: true positives outnumber false positives",
+        "P(disease | positive) ≈ 0.083: false positives outnumber true positives"
+      ],
+      "answer": 3,
+      "why": "P(D | +) = 0.9×0.01 / (0.9×0.01 + 0.1×0.99) = 0.009 / 0.108 ≈ 0.083. The disease is rare, so the 9.9% of people who are false positives swamp the 0.9% who are true positives."
+    },
+    {
+      "id": "bayesnets-1",
+      "skill": "bayesnets",
+      "level": 1,
+      "prompt": "In a Bayesian network, how is the full joint probability P(x1, …, xn) obtained from the conditional probability tables?",
+      "options": [
+        "As the product of P(xi | parents(Xi)) over all nodes",
+        "As the product of the marginals P(xi) over all nodes",
+        "As the sum of P(xi | parents(Xi)) over all nodes",
+        "As the product of P(parents(Xi) | xi) over all nodes"
+      ],
+      "answer": 0,
+      "why": "The chain rule plus the network's conditional independences give P(x1, …, xn) = Π P(xi | parents(Xi)). Each node needs only its parents, not all of its predecessors."
+    },
+    {
+      "id": "bayesnets-2",
+      "skill": "bayesnets",
+      "level": 2,
+      "prompt": "Network: Cloudy → Sprinkler, Cloudy → Rain, Sprinkler → WetGrass ← Rain. All four variables are Boolean. How many independent parameters do the CPTs need in total?",
+      "options": [
+        "15",
+        "18",
+        "4",
+        "9"
+      ],
+      "answer": 3,
+      "why": "A Boolean node with k Boolean parents needs 2^k numbers: Cloudy 1, Sprinkler 2, Rain 2, WetGrass 4, in total 9. The full joint over 4 Boolean variables would need 2^4 − 1 = 15."
+    },
+    {
+      "id": "bayesnets-3",
+      "skill": "bayesnets",
+      "level": 2,
+      "prompt": "Chain A → B → C (all Boolean) with P(a) = 0.5, P(b | a) = 0.8 and P(c | b) = 0.9. What is the joint probability P(a, b, ¬c)?",
+      "options": [
+        "0.36",
+        "0.4",
+        "0.04",
+        "0.08"
+      ],
+      "answer": 2,
+      "why": "P(a, b, ¬c) = P(a) × P(b | a) × P(¬c | b) = 0.5 × 0.8 × (1 − 0.9) = 0.04. Using P(c | b) instead of P(¬c | b) gives 0.36."
+    },
+    {
+      "id": "bayesnets-4",
+      "skill": "bayesnets",
+      "level": 3,
+      "prompt": "In Burglary → Alarm ← Earthquake, either cause alone makes the alarm likely, and it almost never rings without a cause. The alarm rings; then you learn that an earthquake occurred. How does P(Burglary | alarm, earthquake) compare with P(Burglary | alarm)?",
+      "options": [
+        "It is equal: Burglary and Earthquake are independent",
+        "It is lower: the earthquake already explains the alarm",
+        "It is higher: every extra observation adds support",
+        "It is zero: an alarm can have only one cause at a time"
+      ],
+      "answer": 1,
+      "why": "This is explaining away: given their common effect, the two causes become dependent. The earthquake accounts for the alarm, so burglary is needed less as an explanation and its probability falls, though not to zero."
+    },
+    {
+      "id": "markov-1",
+      "skill": "markov",
+      "level": 1,
+      "prompt": "What does the (first-order) Markov property state?",
+      "options": [
+        "Every state is equally likely at each time step",
+        "The next state is independent of the present state",
+        "The state distribution is the same at every time step",
+        "Given the present state, the future is independent of the past"
+      ],
+      "answer": 3,
+      "why": "The Markov property says P(X_t+1 | X_t, X_t−1, …, X_0) = P(X_t+1 | X_t): the current state summarises everything about the past that matters for the future."
+    },
+    {
+      "id": "markov-2",
+      "skill": "markov",
+      "level": 2,
+      "prompt": "Two states A and B. From A: stay with 0.7, move to B with 0.3. From B: move to A with 0.4, stay with 0.6. Now P(A) = 0.5 and P(B) = 0.5. What is P(A) after one step?",
+      "options": [
+        "0.55",
+        "0.35",
+        "0.5",
+        "0.7"
+      ],
+      "answer": 0,
+      "why": "P(A next) = P(A)×P(A→A) + P(B)×P(B→A) = 0.5×0.7 + 0.5×0.4 = 0.35 + 0.20 = 0.55."
+    },
+    {
+      "id": "markov-3",
+      "skill": "markov",
+      "level": 2,
+      "prompt": "Two states A and B. From A: stay with 0.8, move to B with 0.2. From B: move to A with 0.6, stay with 0.4. The chain starts in A. What is P(A) after two steps?",
+      "options": [
+        "0.64",
+        "0.76",
+        "0.8",
+        "0.75"
+      ],
+      "answer": 1,
+      "why": "Two paths end in A: A→A→A with 0.8×0.8 = 0.64 and A→B→A with 0.2×0.6 = 0.12, in total 0.76. The stationary value 0.75 is reached only in the limit."
+    },
+    {
+      "id": "markov-4",
+      "skill": "markov",
+      "level": 3,
+      "prompt": "Two states A and B. From A: stay with 0.9, move to B with 0.1. From B: move to A with 0.3, stay with 0.7. What is the stationary probability of A?",
+      "options": [
+        "0.5",
+        "0.75",
+        "0.9",
+        "0.6"
+      ],
+      "answer": 1,
+      "why": "At stationarity the flow out of A equals the flow into A: π(A)×0.1 = π(B)×0.3 with π(A) + π(B) = 1, so π(A) = 0.3 / (0.1 + 0.3) = 0.75."
+    },
+    {
+      "id": "hmm-1",
+      "skill": "hmm",
+      "level": 1,
+      "prompt": "In a hidden Markov model, what does the emission (sensor) model specify?",
+      "options": [
+        "P(hidden state at t | hidden state at t−1)",
+        "P(hidden state at t | observation at t)",
+        "P(observation at t | observation at t−1)",
+        "P(observation at t | hidden state at t)"
+      ],
+      "answer": 3,
+      "why": "The emission (sensor) model is P(E_t | X_t): how likely each observation is in each hidden state. P(X_t | X_t−1) is the transition model, and P(X_t | e) is what inference computes."
+    },
+    {
+      "id": "hmm-2",
+      "skill": "hmm",
+      "level": 2,
+      "prompt": "Current belief: P(rain today) = 0.6. Transition model: P(rain tomorrow | rain today) = 0.7, P(rain tomorrow | no rain today) = 0.3. Before any new evidence, what is the predicted P(rain tomorrow)?",
+      "options": [
+        "0.42",
+        "0.54",
+        "0.7",
+        "0.6"
+      ],
+      "answer": 1,
+      "why": "Prediction sums over today's state: 0.7×0.6 + 0.3×0.4 = 0.42 + 0.12 = 0.54. Stopping at 0.42 forgets the path through 'no rain today'."
+    },
+    {
+      "id": "hmm-3",
+      "skill": "hmm",
+      "level": 2,
+      "prompt": "After the prediction step, P(rain) = 0.4. Sensor model: P(umbrella | rain) = 0.9, P(umbrella | no rain) = 0.2. An umbrella is observed. What is the filtered P(rain | umbrella)?",
+      "options": [
+        "0.36",
+        "0.75",
+        "0.9",
+        "0.818"
+      ],
+      "answer": 1,
+      "why": "Weight by the likelihood: rain 0.9×0.4 = 0.36, no rain 0.2×0.6 = 0.12. Normalise: 0.36 / (0.36 + 0.12) = 0.75."
+    },
+    {
+      "id": "hmm-4",
+      "skill": "hmm",
+      "level": 3,
+      "prompt": "Belief: P(rain today) = 0.8. Transition: P(rain | rain) = 0.8, P(rain | no rain) = 0.3. Sensor: P(umbrella | rain) = 0.9, P(umbrella | no rain) = 0.3. Tomorrow an umbrella is seen. What is P(rain tomorrow | umbrella)?",
+      "options": [
+        "0.63",
+        "0.923",
+        "0.875",
+        "0.7"
+      ],
+      "answer": 2,
+      "why": "Predict: 0.8×0.8 + 0.3×0.2 = 0.7. Update: rain 0.9×0.7 = 0.63, no rain 0.3×0.3 = 0.09. Normalise: 0.63 / 0.72 = 0.875. Skipping the prediction step gives 0.923."
+    },
+    {
+      "id": "viterbi-1",
+      "skill": "viterbi",
+      "level": 1,
+      "prompt": "What does the Viterbi algorithm compute for an HMM and a sequence of observations?",
+      "options": [
+        "The most likely hidden state at each step, taken separately",
+        "The distribution over the current state given the evidence so far",
+        "The single most likely sequence of hidden states",
+        "The total probability of the observation sequence"
+      ],
+      "answer": 2,
+      "why": "Viterbi returns the argmax over whole state sequences of P(x_1..x_T | e_1..e_T). Per-step most likely states come from smoothing, and the current-state distribution from filtering."
+    },
+    {
+      "id": "viterbi-2",
+      "skill": "viterbi",
+      "level": 2,
+      "prompt": "An HMM has S = 10 hidden states and the observation sequence has length T = 100. Viterbi runs in O(T·S²). Roughly how many predecessor (transition) evaluations does it perform?",
+      "options": [
+        "About 10,000 (T × S²)",
+        "About 1,000 (T × S)",
+        "About 100,000 (T² × S)",
+        "About 10^100 (S^T, one per path)"
+      ],
+      "answer": 0,
+      "why": "For each of T = 100 steps and each of S = 10 states, Viterbi maximises over S = 10 predecessors: 100 × 10 × 10 = 10,000. Enumerating all S^T paths is exactly what it avoids."
+    },
+    {
+      "id": "viterbi-3",
+      "skill": "viterbi",
+      "level": 2,
+      "prompt": "Viterbi step for state Rain. Previous values: m(Rain) = 0.3, m(Dry) = 0.2. Transitions: P(Rain | Rain) = 0.6, P(Rain | Dry) = 0.4. Emission: P(umbrella | Rain) = 0.9. An umbrella is seen. What is the new m(Rain)?",
+      "options": [
+        "0.234",
+        "0.18",
+        "0.162",
+        "0.072"
+      ],
+      "answer": 2,
+      "why": "Take the best predecessor, not the sum: max(0.3×0.6, 0.2×0.4) = max(0.18, 0.08) = 0.18, then multiply by the emission: 0.18 × 0.9 = 0.162. Summing (0.26 × 0.9 = 0.234) is the forward algorithm."
+    },
+    {
+      "id": "viterbi-4",
+      "skill": "viterbi",
+      "level": 3,
+      "prompt": "Viterbi values at t=1: m(A) = 0.3, m(B) = 0.2. Transitions: A→A 0.5, A→B 0.5, B→A 0.1, B→B 0.9. Likelihood of the observation at t=2: 0.2 in A, 0.8 in B. What is the most likely state sequence for t=1, t=2?",
+      "options": [
+        "A, B",
+        "B, B",
+        "A, A",
+        "B, A"
+      ],
+      "answer": 1,
+      "why": "m2(B) = max(0.3×0.5, 0.2×0.9) × 0.8 = 0.18 × 0.8 = 0.144 with back-pointer to B; m2(A) = max(0.15, 0.02) × 0.2 = 0.03. The best path ends in B and traces back to B, although A scored higher at t=1."
+    },
+    {
+      "id": "mdp-1",
+      "skill": "mdp",
+      "level": 1,
+      "prompt": "In a Markov decision process, what is a policy π?",
+      "options": [
+        "A fixed sequence of actions starting from the initial state",
+        "The probability of reaching s' from s when doing action a",
+        "The expected discounted sum of rewards from a given state",
+        "A mapping from every state to the action to take there"
+      ],
+      "answer": 3,
+      "why": "A policy π maps every state to an action, so the agent knows what to do wherever the stochastic transitions take it. A fixed action sequence is a plan, not a policy."
+    },
+    {
+      "id": "mdp-2",
+      "skill": "mdp",
+      "level": 2,
+      "prompt": "An agent receives rewards 2, 0, 5 at steps 0, 1, 2 and nothing afterwards. With discount γ = 0.5, what is the discounted return from step 0?",
+      "options": [
+        "7",
+        "4.5",
+        "3.25",
+        "3.5"
+      ],
+      "answer": 2,
+      "why": "Return = 2 + 0.5×0 + 0.5²×5 = 2 + 0 + 1.25 = 3.25. Each reward is multiplied by γ raised to its step index, so the step-2 reward is multiplied by 0.25."
+    },
+    {
+      "id": "mdp-3",
+      "skill": "mdp",
+      "level": 2,
+      "prompt": "An agent receives reward 2 at every step forever, starting at step 0 (which is not discounted). With γ = 0.8, what is the discounted return Σ γ^t × 2?",
+      "options": [
+        "8",
+        "10",
+        "2.5",
+        "Infinite"
+      ],
+      "answer": 1,
+      "why": "Geometric series: Σ γ^t × 2 = 2 / (1 − γ) = 2 / 0.2 = 10. Discounting with γ < 1 is what keeps an infinite stream of rewards finite."
+    },
+    {
+      "id": "mdp-4",
+      "skill": "mdp",
+      "level": 3,
+      "prompt": "Option X pays reward 10 immediately. Option Y pays reward 12 two steps later and nothing before. With γ = 0.9, which option does an agent maximising discounted return choose, and why?",
+      "options": [
+        "X: option Y is worth 12 × 0.81 = 9.72, which is less than 10",
+        "Y: option Y is worth 12 × 0.9 = 10.8, which is more than 10",
+        "Y: a reward of 12 beats 10 no matter when it is received",
+        "Either: discounting scales both options by the same factor"
+      ],
+      "answer": 0,
+      "why": "Y's reward is discounted twice: 12 × 0.9² = 12 × 0.81 = 9.72 < 10, so X is preferred. Discounting makes later rewards worth less, so timing can reverse a choice."
+    },
+    {
+      "id": "bellman-1",
+      "skill": "bellman",
+      "level": 1,
+      "prompt": "Which equation is the Bellman optimality equation for the state value V(s)?",
+      "options": [
+        "V(s) = Σ_a Σ_s' P(s'|s,a) [R(s,a,s') + γ V(s')]",
+        "V(s) = max_a max_s' [R(s,a,s') + γ V(s')]",
+        "V(s) = max_a Σ_s' P(s'|s,a) [R(s,a,s') + γ V(s')]",
+        "V(s) = max_a Σ_s' P(s'|s,a) [γ R(s,a,s') + V(s')]"
+      ],
+      "answer": 2,
+      "why": "The optimal value takes the max over actions of the expected (probability-weighted) reward plus the discounted value of the successor. Summing over actions or maximising over outcomes is wrong."
+    },
+    {
+      "id": "bellman-2",
+      "skill": "bellman",
+      "level": 2,
+      "prompt": "γ = 0.5. In state s, action a gives reward 4 and then leads to s1 (V = 8) with probability 0.5 or to s2 (V = 0) with probability 0.5. What is Q(s, a)?",
+      "options": [
+        "8",
+        "6",
+        "2",
+        "12"
+      ],
+      "answer": 1,
+      "why": "Q(s,a) = Σ P(s')[R + γV(s')] = 0.5×(4 + 0.5×8) + 0.5×(4 + 0.5×0) = 0.5×8 + 0.5×4 = 6."
+    },
+    {
+      "id": "bellman-3",
+      "skill": "bellman",
+      "level": 2,
+      "prompt": "γ = 0.9. From s, action a gives reward 1 and surely leads to a state with V = 10; action b gives reward 6 and surely leads to a state with V = 5. What is V(s) after one Bellman backup?",
+      "options": [
+        "10",
+        "10.25",
+        "10.5",
+        "11"
+      ],
+      "answer": 2,
+      "why": "Q(s,a) = 1 + 0.9×10 = 10 and Q(s,b) = 6 + 0.9×5 = 10.5. The backup takes the max, so V(s) = 10.5 and the greedy action is b."
+    },
+    {
+      "id": "bellman-4",
+      "skill": "bellman",
+      "level": 3,
+      "prompt": "Which statement about solving an MDP with discount γ < 1 is correct?",
+      "options": [
+        "Value iteration converges only if all values are initialised to zero",
+        "Policy iteration, unlike value iteration, needs no transition model",
+        "The greedy policy is optimal only once the values have fully converged",
+        "Value iteration converges to the same optimal V from any initial values"
+      ],
+      "answer": 3,
+      "why": "For γ < 1 the Bellman update is a contraction, so value iteration reaches the unique fixed point from any start. Policy iteration also uses the model, and the greedy policy usually becomes optimal before the values converge."
+    },
+    {
+      "id": "qlearning-1",
+      "skill": "qlearning",
+      "level": 1,
+      "prompt": "Why is Q-learning called a model-free method?",
+      "options": [
+        "It learns Q-values from sampled transitions without knowing P or R",
+        "It needs no rewards and learns from transition probabilities only",
+        "It stores no value table and keeps only the current policy",
+        "It needs no exploration because its update uses the max operator"
+      ],
+      "answer": 0,
+      "why": "Q-learning updates Q(s,a) from observed samples (s, a, r, s') only, so it never needs the transition model P or the reward function R. It still needs rewards, a Q-table or approximator, and exploration."
+    },
+    {
+      "id": "qlearning-2",
+      "skill": "qlearning",
+      "level": 2,
+      "prompt": "Q(s,a) = 5, α = 0.1, γ = 0.9. The agent takes a in s, receives r = 2 and lands in s', where max_a' Q(s',a') = 10. What is the new Q(s,a) after the Q-learning update?",
+      "options": [
+        "11",
+        "5.6",
+        "6.1",
+        "5.7"
+      ],
+      "answer": 1,
+      "why": "Target = r + γ max Q(s',a') = 2 + 0.9×10 = 11. New Q = 5 + 0.1×(11 − 5) = 5.6. Only a fraction α of the error is applied."
+    },
+    {
+      "id": "qlearning-3",
+      "skill": "qlearning",
+      "level": 2,
+      "prompt": "An ε-greedy agent with ε = 0.2 has 4 actions. When it explores, it picks uniformly among all 4 actions, including the greedy one. With what probability does it select the greedy action?",
+      "options": [
+        "0.8",
+        "0.85",
+        "0.95",
+        "0.25"
+      ],
+      "answer": 1,
+      "why": "With probability 1 − ε = 0.8 it takes the greedy action directly; with probability 0.2 it picks uniformly and hits the greedy action 1/4 of the time: 0.8 + 0.2×0.25 = 0.85."
+    },
+    {
+      "id": "qlearning-4",
+      "skill": "qlearning",
+      "level": 3,
+      "prompt": "Q(s,a) = 0, α = 0.5, γ = 0.8. The agent receives r = −1 and lands in s', where Q(s',left) = 2 and Q(s',right) = 5. Its ε-greedy policy will explore with 'left' next. What is the new Q(s,a) under Q-learning?",
+      "options": [
+        "0.3",
+        "3",
+        "1.5",
+        "2"
+      ],
+      "answer": 2,
+      "why": "Q-learning is off-policy: the target uses the max over next actions, not the action actually taken next. Target = −1 + 0.8×5 = 3, new Q = 0 + 0.5×(3 − 0) = 1.5. Using Q(s',left) = 2 would be SARSA and give 0.3."
+    },
+    {
+      "id": "naivebayes-1",
+      "skill": "naivebayes",
+      "level": 1,
+      "prompt": "What is the 'naive' assumption made by the Naive Bayes classifier?",
+      "options": [
+        "Features are conditionally independent given the class",
+        "Features are independent of the class label",
+        "All classes have the same prior probability",
+        "Every feature has the same distribution in every class"
+      ],
+      "answer": 0,
+      "why": "Naive Bayes assumes P(f1, …, fn | class) = Π P(fi | class): features are independent of each other once the class is known. They still depend on the class, which is what makes them informative."
+    },
+    {
+      "id": "naivebayes-2",
+      "skill": "naivebayes",
+      "level": 2,
+      "prompt": "P(spam) = 0.2, P(ham) = 0.8. P(win | spam) = 0.5, P(win | ham) = 0.1, P(cash | spam) = 0.8, P(cash | ham) = 0.25. An email contains both words. Under Naive Bayes, what is P(spam | win, cash)?",
+      "options": [
+        "0.08",
+        "0.8",
+        "0.941",
+        "0.4"
+      ],
+      "answer": 1,
+      "why": "Spam score 0.2×0.5×0.8 = 0.08; ham score 0.8×0.1×0.25 = 0.02. Normalise: 0.08 / (0.08 + 0.02) = 0.8. Leaving out the priors gives 0.941."
+    },
+    {
+      "id": "naivebayes-3",
+      "skill": "naivebayes",
+      "level": 2,
+      "prompt": "The training set has 8 spam emails, and the word 'prize' appears in 3 of them. Using Laplace (add-one) smoothing for this Boolean feature (present or absent), what is the estimate of P(prize | spam)?",
+      "options": [
+        "0.375",
+        "0.444",
+        "0.5",
+        "0.4"
+      ],
+      "answer": 3,
+      "why": "Add one to the count and one per possible value to the total: (3 + 1) / (8 + 2) = 0.4. The unsmoothed estimate is 3/8 = 0.375; smoothing guarantees that no estimate is ever exactly 0."
+    },
+    {
+      "id": "naivebayes-4",
+      "skill": "naivebayes",
+      "level": 3,
+      "prompt": "A spam filter is tested on 100 emails, 10 of which are spam. It flags 8 emails as spam, and 6 of those really are spam. What are its precision and recall for the spam class?",
+      "options": [
+        "Precision 0.75, recall 0.6",
+        "Precision 0.6, recall 0.75",
+        "Precision 0.94, recall 0.6",
+        "Precision 0.75, recall 0.8"
+      ],
+      "answer": 0,
+      "why": "Precision = true positives / flagged = 6/8 = 0.75. Recall = true positives / actual spam = 6/10 = 0.6. Accuracy is (6 + 88)/100 = 0.94, which is high mainly because most emails are ham."
+    },
+    {
+      "id": "perceptron-1",
+      "skill": "perceptron",
+      "level": 1,
+      "prompt": "When a neural network is trained, what does backpropagation compute?",
+      "options": [
+        "The gradient of the loss with respect to each weight, via the chain rule",
+        "The optimal weights directly, by solving a system of linear equations",
+        "The network's output for an input, layer by layer from the input side",
+        "The best learning rate for each weight, from the size of the error"
+      ],
+      "answer": 0,
+      "why": "Backpropagation applies the chain rule backwards through the layers to obtain the gradient of the loss for every weight; gradient descent then moves each weight a small step against its gradient."
+    },
+    {
+      "id": "perceptron-2",
+      "skill": "perceptron",
+      "level": 2,
+      "prompt": "A perceptron has weights w = (2, −1), bias b = −0.5 and outputs 1 if w·x + b > 0, otherwise 0. What are its outputs for the inputs x = (1, 1) and x = (0, 1), in that order?",
+      "options": [
+        "1 and 1",
+        "0 and 0",
+        "1 and 0",
+        "0 and 1"
+      ],
+      "answer": 2,
+      "why": "For (1, 1): 2×1 − 1×1 − 0.5 = 0.5 > 0, so the output is 1. For (0, 1): 0 − 1 − 0.5 = −1.5, which is not > 0, so the output is 0."
+    },
+    {
+      "id": "perceptron-3",
+      "skill": "perceptron",
+      "level": 2,
+      "prompt": "Perceptron rule w ← w + η(y − ŷ)x with η = 0.5. Current weights w = (1, −2), input x = (2, 1), target y = 0, prediction ŷ = 1. What are the updated weights?",
+      "options": [
+        "(2, −1.5)",
+        "(1, −2)",
+        "(0.5, −2.5)",
+        "(0, −2.5)"
+      ],
+      "answer": 3,
+      "why": "y − ŷ = 0 − 1 = −1, so w ← (1, −2) + 0.5×(−1)×(2, 1) = (1 − 1, −2 − 0.5) = (0, −2.5). The weights move away from an input that was wrongly classified as positive."
+    },
+    {
+      "id": "perceptron-4",
+      "skill": "perceptron",
+      "level": 3,
+      "prompt": "A network has two hidden layers, but every unit uses the identity (linear) activation function. Which statement is correct?",
+      "options": [
+        "It can represent XOR, because it has hidden layers before the output",
+        "It can approximate any continuous function if its layers are wide enough",
+        "It cannot be trained by gradient descent, because all gradients are zero",
+        "It still computes only a linear function, so it cannot represent XOR"
+      ],
+      "answer": 3,
+      "why": "A composition of linear maps is itself linear, so the network is equivalent to a single linear layer and can only draw a linear boundary. XOR is not linearly separable, so a non-linear activation is required."
+    }
+  ]
+}

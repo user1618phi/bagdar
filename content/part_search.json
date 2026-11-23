@@ -1,0 +1,564 @@
+{
+  "lessons": [
+    {
+      "skill": "agents",
+      "idea": "An agent maps percept sequences to actions. It is rational if it always picks the action expected to maximise its performance measure, given the percepts so far and what it knows.",
+      "example": "Automated taxi, PEAS: Performance = safe, fast, legal, profitable trips; Environment = roads, traffic, pedestrians; Actuators = steering, accelerator, brake; Sensors = cameras, GPS, speedometer. Its environment is partially observable, stochastic, sequential, dynamic, continuous and multi-agent.",
+      "trap": "Confusing rational with omniscient or successful: rationality is judged by expected performance given the percepts so far, not by the actual outcome."
+    },
+    {
+      "skill": "formulation",
+      "idea": "A search problem is an initial state, actions, a transition model, a goal test and a path cost. A solution is an action sequence from the initial state to a goal; the optimal one has the lowest path cost.",
+      "example": "Route finding in Romania: state = current city, initial state = Arad, actions = drive to a neighbouring city, goal test = in Bucharest, path cost = total kilometres. Weather and scenery are abstracted away. With branching factor b = 3, a search tree holds 1 + 3 + 9 = 13 nodes down to depth 2.",
+      "trap": "Treating the search tree as the state space: one state can appear in many tree nodes, so even a 3-state space with loops yields an infinite tree."
+    },
+    {
+      "skill": "uninformed",
+      "idea": "BFS expands the shallowest node first (FIFO queue); DFS expands the deepest first (LIFO stack). BFS is complete but needs O(b^d) memory; DFS needs only O(bm) memory but may dive down a wrong or infinite branch.",
+      "example": "Tree: A has children B, C; B has children D, E; C has children F, G. BFS visits A, B, C, D, E, F, G; DFS visits A, B, D, E, C, F, G. Iterative deepening reruns DFS with depth limits 0, 1, 2, ... and finds the shallowest goal like BFS, using only O(bd) memory.",
+      "trap": "Believing BFS always finds the cheapest path: it finds the path with the fewest steps, which is cheapest only when all step costs are equal."
+    },
+    {
+      "skill": "ucs",
+      "idea": "Uniform-cost search always expands the frontier node with the lowest path cost g(n), using a priority queue. With non-negative step costs, the first goal it expands is reached by a cheapest path, as in Dijkstra's algorithm.",
+      "example": "Edges: S–A 2, S–B 5, A–G 6, B–G 1. UCS expands S, then A (g = 2), which puts G on the frontier with g = 8. It does not stop: B (g = 5) is cheaper, so B is expanded and G improves to g = 6. Only then is G expanded, giving S→B→G with cost 6.",
+      "trap": "Stopping when a goal is first generated instead of when it is expanded: a cheaper path to that goal may still be waiting on the frontier."
+    },
+    {
+      "skill": "heuristics",
+      "idea": "A heuristic h(n) estimates the cheapest cost from n to a goal. It is admissible if it never overestimates, and consistent if h(n) ≤ c(n,a,n') + h(n') for every step; consistency implies admissibility.",
+      "example": "8-puzzle: misplaced tiles (h1) and Manhattan distance (h2) are exact solution costs of relaxed puzzles, so both are admissible. If one tile is two squares from home and another is one square away, h1 = 2 but h2 = 3. Since h2 ≥ h1 everywhere, h2 dominates h1, and A* with h2 never needs to expand more nodes than with h1.",
+      "trap": "Thinking a bigger heuristic is always better: larger values help only while h stays admissible; a single overestimate can cost A* its optimality."
+    },
+    {
+      "skill": "astar",
+      "idea": "A* expands the node with the lowest f(n) = g(n) + h(n): cost so far plus estimated cost to go. It is optimal with an admissible h in tree search and with a consistent h in graph search.",
+      "example": "Edges: S–A 2, S–B 5, A–G 6, B–G 1; h(S) = 5, h(A) = 5, h(B) = 1, h(G) = 0. From S: f(A) = 2 + 5 = 7 and f(B) = 5 + 1 = 6. A* expands B, gets f(G) = 6 + 0 = 6, expands G and returns S→B→G with cost 6 without ever expanding A. Uniform-cost search would have expanded A first.",
+      "trap": "Ranking nodes by h alone (that is greedy best-first) or by g alone (that is uniform-cost search): A* needs the sum, and h = 0 turns it into UCS."
+    },
+    {
+      "skill": "local",
+      "idea": "Local search keeps only a current state and moves to neighbours to improve an objective; the path is irrelevant. Hill climbing only moves uphill; simulated annealing sometimes moves downhill to escape local maxima.",
+      "example": "Values along a line: 2, 6, 4, 3, 8, 5. Hill climbing from the third state (4) moves to 6 and stops at a local maximum, never reaching 8. Simulated annealing accepts a move with ΔE = −3 with probability e^(−3/3) ≈ 0.37 at T = 3, but only e^(−3/0.5) ≈ 0.002 at T = 0.5.",
+      "trap": "Expecting hill climbing to find the global optimum: it halts at the first local maximum or plateau unless restarts or random downhill moves are added."
+    },
+    {
+      "skill": "minimax",
+      "idea": "Minimax assumes optimal play: MAX takes the largest child value, MIN the smallest. Alpha–beta returns the same value but prunes hopeless branches; deep games add a depth limit and an evaluation function.",
+      "example": "MAX root, MIN children with leaves A: 3, 12, 8; B: 2, 4, 6; C: 14, 5, 2. MIN values are 3, 2, 2, so the root is worth 3. Alpha–beta, left to right: after A, alpha = 3; in B the first leaf 2 ≤ 3 prunes 4 and 6; in C all three leaves are needed because 14 and 5 are both above 3.",
+      "trap": "Believing alpha–beta changes the result: it returns exactly the minimax value; only the amount of work changes, and that depends on move ordering."
+    },
+    {
+      "skill": "expectimax",
+      "idea": "When outcomes are random rather than chosen by an adversary, use chance nodes: their value is the probability-weighted average of their children. MAX nodes still take the maximum.",
+      "example": "MAX chooses between a safe move worth 4 and a gamble: 10 with probability 0.7, −5 with probability 0.3. The gamble is worth 0.7 × 10 + 0.3 × (−5) = 5.5, so expectimax gambles; minimax would fear the −5 and play safe. Pruning is harder too: an unseen child can still shift an average unless values are bounded.",
+      "trap": "Assuming only the order of leaf values matters: expectimax averages magnitudes, so rescaling utilities non-linearly can change the best move."
+    }
+  ],
+  "items": [
+    {
+      "id": "agents-1",
+      "skill": "agents",
+      "level": 1,
+      "prompt": "What distinguishes an agent function from an agent program?",
+      "options": [
+        "The function runs on the hardware; the program is its mathematical description",
+        "The function is an abstract percept-to-action mapping; the program implements it",
+        "The function handles sensing; the program handles choosing and executing actions",
+        "The function is used by reflex agents; the program is used by learning agents"
+      ],
+      "answer": 1,
+      "why": "The agent function is the abstract mathematical mapping from any percept sequence to an action. The agent program is the concrete code that runs on the agent's architecture to produce that mapping."
+    },
+    {
+      "id": "agents-2",
+      "skill": "agents",
+      "level": 2,
+      "prompt": "In a PEAS description of a robot vacuum cleaner, which entry belongs under Actuators?",
+      "options": [
+        "Bump sensor, dirt detector and cliff sensor",
+        "Floor area cleaned per unit of battery energy",
+        "Rooms, carpets, furniture and stray objects",
+        "Wheels, rotating brushes and the suction motor"
+      ],
+      "answer": 3,
+      "why": "Actuators are the devices the agent uses to act on its environment: wheels, brushes and suction. The other options are the Sensors, the Performance measure and the Environment."
+    },
+    {
+      "id": "agents-3",
+      "skill": "agents",
+      "level": 2,
+      "prompt": "An agent solves a printed crossword puzzle alone, with no time limit. Which description of its task environment is correct?",
+      "options": [
+        "Fully observable, deterministic, sequential, static, discrete, single-agent",
+        "Partially observable, stochastic, sequential, dynamic, discrete, single-agent",
+        "Fully observable, deterministic, episodic, dynamic, continuous, single-agent",
+        "Fully observable, stochastic, sequential, static, discrete, multi-agent"
+      ],
+      "answer": 0,
+      "why": "The whole grid is visible, writing a word has a certain effect, earlier entries constrain later ones (sequential), nothing changes while the agent thinks (static), letters and squares are discrete, and nobody else acts."
+    },
+    {
+      "id": "agents-4",
+      "skill": "agents",
+      "level": 3,
+      "prompt": "An agent can take action X (80% chance of 10 points, 20% chance of 0 points) or action Y (7 points for certain). Knowing only these odds, it picks X and scores 0. By the textbook definition of rationality, its choice was:",
+      "options": [
+        "Irrational: Y would actually have scored more, 7 versus 0",
+        "Irrational: a rational agent avoids any chance of scoring 0",
+        "Rational: X had the higher expected score, 8 versus 7",
+        "Rational only if it repeats X until it finally scores 10"
+      ],
+      "answer": 2,
+      "why": "Rationality maximises expected performance given what the agent knows: E[X] = 0.8 × 10 + 0.2 × 0 = 8 > 7. An unlucky outcome does not make the decision irrational; rationality is not omniscience."
+    },
+    {
+      "id": "formulation-1",
+      "skill": "formulation",
+      "level": 1,
+      "prompt": "In a formal search problem, which component specifies the state that results from doing action a in state s?",
+      "options": [
+        "The applicable actions, ACTIONS(s)",
+        "The goal test, IS-GOAL(s)",
+        "The transition model, RESULT(s, a)",
+        "The path cost function, g(n)"
+      ],
+      "answer": 2,
+      "why": "The transition model RESULT(s, a) returns the successor state. ACTIONS(s) only lists what can be done in s, the goal test checks for success, and the path cost scores a sequence of actions."
+    },
+    {
+      "id": "formulation-2",
+      "skill": "formulation",
+      "level": 2,
+      "prompt": "The 8-puzzle has 9! arrangements of eight tiles and a blank on a 3×3 board, but only half of them are reachable from any given state. How many states are reachable?",
+      "options": [
+        "362,880",
+        "40,320",
+        "181,440",
+        "20,160"
+      ],
+      "answer": 2,
+      "why": "9! = 362,880 arrangements fall into two disjoint halves (a parity argument), so 362,880 / 2 = 181,440 states are reachable. 40,320 is 8!, which forgets the blank's nine possible positions."
+    },
+    {
+      "id": "formulation-3",
+      "skill": "formulation",
+      "level": 2,
+      "prompt": "A search tree has uniform branching factor b = 3, with the root at depth 0. How many nodes does it contain in total at depths 0 through 4?",
+      "options": [
+        "121",
+        "81",
+        "120",
+        "364"
+      ],
+      "answer": 0,
+      "why": "1 + 3 + 9 + 27 + 81 = 121. The deepest level alone has 3^4 = 81 nodes, forgetting the root gives 120, and 364 includes one level too many (depth 5)."
+    },
+    {
+      "id": "formulation-4",
+      "skill": "formulation",
+      "level": 3,
+      "prompt": "A state space has 3 states A, B, C with two-way actions A–B, B–C and A–C. A search tree is grown from A with no check for repeated states. How many tree nodes are at depth 3 (root = depth 0)?",
+      "options": [
+        "3 nodes, one for each state in the space",
+        "6 nodes, one for each directed action",
+        "0 nodes, since every state appears by depth 1",
+        "8 nodes, although there are only 3 states"
+      ],
+      "answer": 3,
+      "why": "Every state has 2 successors, so every tree node has 2 children: 2^3 = 8 nodes at depth 3. A search tree repeats states along different paths, so it can be far larger than the state space (here it is infinite)."
+    },
+    {
+      "id": "uninformed-1",
+      "skill": "uninformed",
+      "level": 1,
+      "prompt": "Which frontier data structure makes generic tree search behave as breadth-first search?",
+      "options": [
+        "A FIFO queue: the oldest generated node is expanded first",
+        "A LIFO stack: the newest generated node is expanded first",
+        "A priority queue: the node with the lowest g(n) goes first",
+        "A priority queue: the node with the lowest h(n) goes first"
+      ],
+      "answer": 0,
+      "why": "BFS expands the shallowest node first, and a first-in-first-out queue ensures nodes generated earlier (hence shallower) are expanded before deeper ones. A LIFO stack gives depth-first search."
+    },
+    {
+      "id": "uninformed-2",
+      "skill": "uninformed",
+      "level": 2,
+      "prompt": "Tree: S has children A and B; A has children C and D; B has children E and G (the goal). Left children are explored first. In what order does depth-first search visit the nodes?",
+      "options": [
+        "S, A, B, C, D, E, G",
+        "S, A, C, D, B, E, G",
+        "S, A, C, B, E, D, G",
+        "S, C, D, A, E, G, B"
+      ],
+      "answer": 1,
+      "why": "DFS goes as deep as possible before backing up: S, then A and its children C and D (dead ends), then back up to B, then E, and finally G. The order S, A, B, C, D, E, G is breadth-first."
+    },
+    {
+      "id": "uninformed-3",
+      "skill": "uninformed",
+      "level": 2,
+      "prompt": "Iterative deepening with branching factor b = 10 and solution depth d = 5 generates d·b + (d−1)·b² + … + 1·b^d nodes (root not counted). What is the total?",
+      "options": [
+        "111,110",
+        "100,000",
+        "555,550",
+        "123,450"
+      ],
+      "answer": 3,
+      "why": "5·10 + 4·100 + 3·1,000 + 2·10,000 + 1·100,000 = 123,450. That is only about 11% more than the 111,110 nodes BFS generates to the same depth, because most nodes lie on the deepest level."
+    },
+    {
+      "id": "uninformed-4",
+      "skill": "uninformed",
+      "level": 3,
+      "prompt": "Edges: S–A cost 1, A–G cost 1, S–G cost 5. Breadth-first search runs from S with goal G. Which path does it return, and is that path the cheapest?",
+      "options": [
+        "S→A→G with cost 2; BFS is always cost-optimal",
+        "S→G with cost 5; not cheapest, since S→A→G costs 2",
+        "S→G with cost 5; this is also the cheapest path",
+        "S→A→G with cost 2; BFS follows cheap edges first"
+      ],
+      "answer": 1,
+      "why": "BFS returns the shallowest goal: S→G, one step, cost 5. S→A→G takes two steps but costs only 1 + 1 = 2. BFS is cost-optimal only when all step costs are equal."
+    },
+    {
+      "id": "ucs-1",
+      "skill": "ucs",
+      "level": 1,
+      "prompt": "Uniform-cost search always expands the frontier node with the lowest:",
+      "options": [
+        "depth in the search tree, d(n)",
+        "estimated cost to the goal, h(n)",
+        "estimated total cost, g(n) + h(n)",
+        "path cost from the start, g(n)"
+      ],
+      "answer": 3,
+      "why": "UCS keeps the frontier in a priority queue ordered by g(n), the cost of the path from the start. Ordering by h(n) gives greedy best-first search, and ordering by g(n) + h(n) gives A*."
+    },
+    {
+      "id": "ucs-2",
+      "skill": "ucs",
+      "level": 2,
+      "prompt": "Edges: S–A cost 4, S–B cost 1, A–B cost 2, A–G cost 5, B–G cost 8. Uniform-cost search runs from S to goal G. In what order are nodes expanded?",
+      "options": [
+        "S, B, A, G",
+        "S, A, B, G",
+        "S, B, G",
+        "S, A, G"
+      ],
+      "answer": 0,
+      "why": "Expand S (g = 0), then B (g = 1), which lowers A to 1 + 2 = 3 and adds G at 9. Expand A (g = 3): G improves to 3 + 5 = 8. Expand G (g = 8). The path is S→B→A→G with cost 8."
+    },
+    {
+      "id": "ucs-3",
+      "skill": "ucs",
+      "level": 2,
+      "prompt": "Edges: S–A cost 1, S–G cost 10, A–G cost 2. Uniform-cost search expands S, placing A (g = 1) and the goal G (g = 10) on the frontier. What does a correct implementation do next?",
+      "options": [
+        "Return S→G at cost 10, because a goal is on the frontier",
+        "Expand G next, because goal nodes take priority over A",
+        "Expand A, reach G with g = 3, and later return cost 3",
+        "Return S→G at cost 10, because it uses the fewest edges"
+      ],
+      "answer": 2,
+      "why": "UCS applies the goal test when a node is expanded, not when it is generated. A (g = 1) is expanded first and yields G with g = 1 + 2 = 3, which beats the direct edge of cost 10."
+    },
+    {
+      "id": "ucs-4",
+      "skill": "ucs",
+      "level": 3,
+      "prompt": "Directed edges: S→G cost 2, S→A cost 3, A→G cost −4. Uniform-cost search runs from S to goal G. What happens?",
+      "options": [
+        "It returns S→G (cost 2) and misses S→A→G (cost −1)",
+        "It returns S→A→G (cost −1), since UCS is always optimal",
+        "It returns S→A→G (cost −1), since A is expanded before G",
+        "It never terminates, since any negative cost causes a loop"
+      ],
+      "answer": 0,
+      "why": "Frontier after S: G (g = 2), A (g = 3). G is cheapest, so it is expanded and returned at cost 2, yet S→A→G costs 3 − 4 = −1. Like Dijkstra's algorithm, UCS is optimal only with non-negative step costs."
+    },
+    {
+      "id": "heuristics-1",
+      "skill": "heuristics",
+      "level": 1,
+      "prompt": "A heuristic h is admissible when, for every node n:",
+      "options": [
+        "h(n) never falls below the true cheapest cost from n to a goal",
+        "h(n) never exceeds the true cheapest cost from n to a goal",
+        "h(n) never exceeds the path cost g(n) already paid to reach n",
+        "h(n) drops by exactly the step cost after every single action"
+      ],
+      "answer": 1,
+      "why": "Admissible means optimistic: h(n) ≤ h*(n), the true cheapest cost from n to a goal. The definition says nothing about g(n) and does not require h to be exact."
+    },
+    {
+      "id": "heuristics-2",
+      "skill": "heuristics",
+      "level": 2,
+      "prompt": "8-puzzle state, row by row: 1 2 3 / 4 8 _ / 7 6 5. Goal: 1 2 3 / 4 5 6 / 7 8 _. What are h1 (number of misplaced tiles, blank not counted) and h2 (total Manhattan distance)?",
+      "options": [
+        "h1 = 4 and h2 = 5",
+        "h1 = 3 and h2 = 3",
+        "h1 = 3 and h2 = 5",
+        "h1 = 5 and h2 = 3"
+      ],
+      "answer": 2,
+      "why": "Tiles 8, 6 and 5 are out of place, so h1 = 3. Tile 8 is 1 square from home, tile 6 is 2 and tile 5 is 2, so h2 = 1 + 2 + 2 = 5. Here the true solution cost is also 5 moves."
+    },
+    {
+      "id": "heuristics-3",
+      "skill": "heuristics",
+      "level": 2,
+      "prompt": "Edges: S–A cost 2, A–G cost 3, S–G cost 6; G is the goal. A heuristic gives h(S) = 4, h(A) = 4, h(G) = 0. Is h admissible?",
+      "options": [
+        "Yes: h(S) = 4 is below the true cost 5 from S to G",
+        "Yes: every h value is below the largest edge cost, 6",
+        "No: h(S) = 4 exceeds the cost 2 of the edge S–A",
+        "No: h(A) = 4 exceeds the true cost 3 from A to G"
+      ],
+      "answer": 3,
+      "why": "True costs to G: h*(A) = 3 and h*(S) = min(6, 2 + 3) = 5. h(S) = 4 ≤ 5 is fine, but h(A) = 4 > 3 overestimates, and a single overestimate breaks admissibility."
+    },
+    {
+      "id": "heuristics-4",
+      "skill": "heuristics",
+      "level": 3,
+      "prompt": "Directed edges: S→A cost 1, A→G cost 3; G is the goal. A heuristic gives h(S) = 4, h(A) = 1, h(G) = 0. Which statement about h is correct?",
+      "options": [
+        "Admissible but not consistent: h(S) = 4 > 1 + h(A) = 2",
+        "Admissible and consistent: no value exceeds the true cost",
+        "Consistent but not admissible: h decreases towards the goal",
+        "Neither: h(S) = 4 exceeds the cost 1 of the edge S→A"
+      ],
+      "answer": 0,
+      "why": "True costs are h*(S) = 4 and h*(A) = 3, so h never overestimates: admissible. Consistency needs h(S) ≤ c(S,A) + h(A) = 1 + 1 = 2, but h(S) = 4, so it fails. Consistency implies admissibility, not the reverse."
+    },
+    {
+      "id": "astar-1",
+      "skill": "astar",
+      "level": 1,
+      "prompt": "If the heuristic is h(n) = 0 for every node, A* search behaves exactly like which algorithm?",
+      "options": [
+        "Greedy best-first search, since f(n) = h(n)",
+        "Breadth-first search, since all f-values are equal",
+        "Uniform-cost search, since f(n) = g(n)",
+        "Depth-first search, since no guidance remains"
+      ],
+      "answer": 2,
+      "why": "With h = 0, f(n) = g(n) + 0 = g(n), so A* orders the frontier by path cost alone, which is uniform-cost search. Greedy best-first is the opposite case: it uses h and ignores g."
+    },
+    {
+      "id": "astar-2",
+      "skill": "astar",
+      "level": 2,
+      "prompt": "The A* frontier holds A with g = 2, h = 7; B with g = 4, h = 3; and C with g = 8, h = 1. Which node does A* expand next?",
+      "options": [
+        "B, because f(B) = 4 + 3 = 7 is the lowest",
+        "A, because g(A) = 2 is the lowest on the frontier",
+        "C, because h(C) = 1 is the lowest on the frontier",
+        "C, because g(C) = 8 is the deepest reached so far"
+      ],
+      "answer": 0,
+      "why": "f(A) = 2 + 7 = 9, f(B) = 4 + 3 = 7 and f(C) = 8 + 1 = 9, so A* expands B. Choosing the lowest g is uniform-cost search; choosing the lowest h is greedy best-first search."
+    },
+    {
+      "id": "astar-3",
+      "skill": "astar",
+      "level": 2,
+      "prompt": "Edges: S–A 1, S–B 4, A–B 2, A–G 6, B–G 2. Heuristic: h(S) = 5, h(A) = 4, h(B) = 2, h(G) = 0. Which path does A* return from S to G, and at what cost?",
+      "options": [
+        "S→B→G with cost 6",
+        "S→A→B→G with cost 5",
+        "S→A→G with cost 7",
+        "S→B→A→G with cost 12"
+      ],
+      "answer": 1,
+      "why": "Expand S: f(A) = 1 + 4 = 5, f(B) = 4 + 2 = 6. Expand A: B improves to g = 3, f = 5; G gets f = 7. Expand B: G improves to g = 5, f = 5. Expand G: cost 5. Greedy best-first would take S→B→G for 6."
+    },
+    {
+      "id": "astar-4",
+      "skill": "astar",
+      "level": 3,
+      "prompt": "Edges: S–A cost 1, A–G cost 1, S–G cost 3. Heuristic: h(S) = 2, h(A) = 5, h(G) = 0. What does A* return for the path from S to G, and why?",
+      "options": [
+        "S→A→G, cost 2: A* is optimal with any heuristic at all",
+        "S→A→G, cost 2: A has the lowest g on the frontier",
+        "S→G, cost 3: it is the cheapest path in this graph",
+        "S→G, cost 3: h(A) = 5 overestimates, hiding the better path"
+      ],
+      "answer": 3,
+      "why": "After S: f(A) = 1 + 5 = 6 and f(G) = 3 + 0 = 3, so G is expanded first and S→G (cost 3) is returned. The optimal path S→A→G costs 2, but h(A) = 5 exceeds the true cost 1, so h is inadmissible and optimality is lost."
+    },
+    {
+      "id": "local-1",
+      "skill": "local",
+      "level": 1,
+      "prompt": "How does simulated annealing differ from plain hill climbing?",
+      "options": [
+        "It keeps every visited state on a frontier to backtrack",
+        "It restarts from a random state whenever it gets stuck",
+        "It always takes the best neighbour but forbids revisits",
+        "It sometimes accepts worse moves, less often as T falls"
+      ],
+      "answer": 3,
+      "why": "Simulated annealing picks a random move, always accepts improvements, and accepts a worse move with probability e^(ΔE/T). As the temperature T is lowered, bad moves become rarer, so it can escape local maxima early on."
+    },
+    {
+      "id": "local-2",
+      "skill": "local",
+      "level": 2,
+      "prompt": "Simulated annealing (maximising) considers a move that changes the objective by ΔE = −2 at temperature T = 4. With acceptance probability e^(ΔE/T), how likely is the move to be accepted?",
+      "options": [
+        "About 0.14",
+        "About 0.61",
+        "About 0.39",
+        "Exactly 0.50"
+      ],
+      "answer": 1,
+      "why": "e^(ΔE/T) = e^(−2/4) = e^(−0.5) ≈ 0.61. Using e^(−2) ≈ 0.14 forgets to divide by T, and 0.39 is the probability of rejecting the move."
+    },
+    {
+      "id": "local-3",
+      "skill": "local",
+      "level": 2,
+      "prompt": "Seven states in a row have values 3, 5, 4, 2, 6, 9, 7; neighbours are the adjacent states. Steepest-ascent hill climbing starts at the third state (value 4). Where does it stop?",
+      "options": [
+        "At the sixth state (value 9), the global maximum",
+        "At the second state (value 5), a local maximum",
+        "At the third state (value 4), as one neighbour is worse",
+        "At the fifth state (value 6), the first value above 5"
+      ],
+      "answer": 1,
+      "why": "From 4 the neighbours are 5 and 2, so it moves to 5. From 5 the neighbours are 3 and 4, both worse, so it stops at a local maximum and never crosses the dip (value 2) to reach the global maximum 9."
+    },
+    {
+      "id": "local-4",
+      "skill": "local",
+      "level": 3,
+      "prompt": "One hill-climbing run from a random start reaches the global optimum with probability 0.25. Using independent random restarts, what is the probability that at least one of 3 runs succeeds?",
+      "options": [
+        "Exactly 0.75",
+        "About 0.42",
+        "About 0.58",
+        "Exactly 0.25"
+      ],
+      "answer": 2,
+      "why": "P(all three fail) = 0.75^3 ≈ 0.42, so P(at least one succeeds) = 1 − 0.42 ≈ 0.58. The probabilities do not simply add up to 0.75; on average 1 / 0.25 = 4 runs are needed for a success."
+    },
+    {
+      "id": "minimax-1",
+      "skill": "minimax",
+      "level": 1,
+      "prompt": "What does alpha–beta pruning guarantee compared with plain minimax search to the same depth?",
+      "options": [
+        "The same root value, usually after examining fewer nodes",
+        "A better root value, because bad branches are removed",
+        "An approximate root value, traded for greater speed",
+        "The same root value, but only with perfect move ordering"
+      ],
+      "answer": 0,
+      "why": "Alpha–beta only skips branches that provably cannot influence the choice at the root, so it returns exactly the minimax value. Move ordering affects how much is pruned, never the result."
+    },
+    {
+      "id": "minimax-2",
+      "skill": "minimax",
+      "level": 2,
+      "prompt": "A MAX root has three MIN children with leaf values A: 4, 9, 6; B: 3, 8, 7; C: 10, 2, 5. What is the minimax value of the root?",
+      "options": [
+        "8",
+        "10",
+        "2",
+        "4"
+      ],
+      "answer": 3,
+      "why": "MIN picks the smallest leaf under each child: A = 4, B = 3, C = 2. MAX then takes the largest of these: max(4, 3, 2) = 4. The answer 8 comes from swapping the roles of MAX and MIN."
+    },
+    {
+      "id": "minimax-3",
+      "skill": "minimax",
+      "level": 2,
+      "prompt": "A MAX root has MIN children with leaves A: 5, 7, 9; B: 4, 8, 6; C: 12, 3, 10. Alpha–beta search visits children and leaves left to right. Which leaves are pruned (never evaluated)?",
+      "options": [
+        "The leaves 8 and 6 only",
+        "The leaves 8, 6, 3 and 10",
+        "The leaves 8, 6 and 10",
+        "No leaves are pruned here"
+      ],
+      "answer": 2,
+      "why": "A gives alpha = 5. In B the first leaf 4 ≤ 5, so B cannot beat A: 8 and 6 are pruned. In C, 12 allows no cut-off, but 3 ≤ 5 does, pruning 10. The root value is still 5."
+    },
+    {
+      "id": "minimax-4",
+      "skill": "minimax",
+      "level": 3,
+      "prompt": "Plain minimax can search a game with branching factor 30 to depth 4 (about 30^4 = 810,000 nodes) in its time budget. With perfect move ordering, roughly what depth can alpha–beta reach in the same budget?",
+      "options": [
+        "Depth 5, since pruning saves about one ply of work",
+        "Depth 8, since it examines about b^(d/2) nodes",
+        "Depth 4, since it returns the same value as minimax",
+        "Depth 16, since it examines about b^(d/4) nodes"
+      ],
+      "answer": 1,
+      "why": "In the best case alpha–beta examines about b^(d/2) nodes, so the effective branching factor is √b. 30^(8/2) = 30^4 = 810,000, so the same budget reaches depth 8, twice as deep."
+    },
+    {
+      "id": "expectimax-1",
+      "skill": "expectimax",
+      "level": 1,
+      "prompt": "In expectimax search, the value of a chance node is:",
+      "options": [
+        "The minimum of its children's values, as at a MIN node",
+        "The value of whichever child is the most probable",
+        "The probability-weighted average of its children's values",
+        "The midpoint between its best and worst child values"
+      ],
+      "answer": 2,
+      "why": "A chance node is controlled by no player, so its value is the expectation Σ P(outcome) × value(outcome) over its children. Taking the minimum would wrongly treat chance as an adversary."
+    },
+    {
+      "id": "expectimax-2",
+      "skill": "expectimax",
+      "level": 2,
+      "prompt": "MAX chooses between two chance nodes. L: 8 with probability 0.5, 2 with probability 0.5. R: 6 with probability 0.75, 4 with probability 0.25. What is the expectimax value of the root?",
+      "options": [
+        "5.5",
+        "5.0",
+        "4.0",
+        "8.0"
+      ],
+      "answer": 0,
+      "why": "L = 0.5 × 8 + 0.5 × 2 = 5.0 and R = 0.75 × 6 + 0.25 × 4 = 5.5. MAX takes the larger, 5.5. The value 4.0 would be the minimax answer, which treats chance as an adversary."
+    },
+    {
+      "id": "expectimax-3",
+      "skill": "expectimax",
+      "level": 2,
+      "prompt": "MAX can play Left (outcomes 10 or 0) or Right (outcomes 3 or 4). Compare two models: the outcome is picked by a minimising opponent (minimax) or by a fair coin flip (expectimax). Which moves are chosen?",
+      "options": [
+        "Both play Left, since it contains the best outcome, 10",
+        "Both play Right, since it avoids the worst outcome, 0",
+        "Minimax plays Left (10); expectimax plays Right (3.5)",
+        "Minimax plays Right (3); expectimax plays Left (5)"
+      ],
+      "answer": 3,
+      "why": "Minimax: min(10, 0) = 0 versus min(3, 4) = 3, so Right. Expectimax: (10 + 0) / 2 = 5 versus (3 + 4) / 2 = 3.5, so Left. Assuming an adversary when outcomes are random makes the agent too cautious."
+    },
+    {
+      "id": "expectimax-4",
+      "skill": "expectimax",
+      "level": 3,
+      "prompt": "MAX chooses between A (a leaf worth 3) and B (a chance node: 0 or 5, each with probability 0.5). If every leaf value x is replaced by x², which keeps the leaves in the same order, what happens to the expectimax decision?",
+      "options": [
+        "It stays A: an order-preserving change cannot matter",
+        "It flips from A to B: 3 vs 2.5 becomes 9 vs 12.5",
+        "It stays B: B holds the largest leaf in both cases",
+        "It flips from B to A: 2.5 vs 3 becomes 12.5 vs 9"
+      ],
+      "answer": 1,
+      "why": "Before: A = 3 and B = 0.5 × 0 + 0.5 × 5 = 2.5, so A. After squaring: A = 9 and B = 0.5 × 0 + 0.5 × 25 = 12.5, so B. Expectimax depends on utility magnitudes; only positive linear transformations are safe."
+    }
+  ]
+}
