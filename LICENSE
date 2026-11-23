@@ -21,5 +21,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 Fonts in web/ are distributed under the SIL Open Font License 1.1:
-Medeo Sans and Medeo Mono (embedded in web/kit.css) and Source Serif 4
-(web/fonts/SourceSerif4-latin.woff2).
+Medeo Sans and Medeo Mono (embedded in web/kit.css), Source Serif 4
+(web/fonts/SourceSerif4-latin.woff2) and Caveat (docs/fonts/Caveat-latin.woff2).

@@ -1,8 +1,8 @@
 # Team Contribution Statement
 
-**Project:** Meje: a GPS for learning
-**Course:** AI Fundamentals (AIF1303), QAIRU, Trimester 1, 2026-2027
-**Instructor:** Aizhan Sydykova
+**Project:** Meje: a GPS for learning  
+**Course:** AI Fundamentals (AIF1303), QAIRU, Trimester 1, 2026-2027  
+**Instructor:** Aizhan Sydykova  
 **Team size:** 1
 
 | Member | Role | Contribution |
@@ -27,4 +27,4 @@ This is an individual project. There are no other team members.
 
 Use of AI tools in this work is disclosed separately in the AI Usage Declaration, as the course policy requires.
 
-Signature: ____________________   Date: ____________________
+Signature: <span class="signature">Mustafa Kassym</span> &nbsp;&nbsp;&nbsp;&nbsp; Date: 23 November 2026

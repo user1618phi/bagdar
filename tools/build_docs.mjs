@@ -19,6 +19,8 @@ const PAGES = [
 
 const PRINT_CSS = `
   @font-face { font-family: "Source Serif 4"; src: url("../../web/fonts/SourceSerif4-latin.woff2") format("woff2"); font-weight: 200 900; }
+  @font-face { font-family: "Caveat"; src: url("../fonts/Caveat-latin.woff2") format("woff2"); font-weight: 400 700; }
+  .signature { font: 500 25pt/1 "Caveat", cursive; padding: 0 16pt 1pt 8pt; border-bottom: 1px solid var(--tick); }
   @page { size: A4; margin: 19mm 18mm 20mm; }
   html { font-size: 10.4pt; line-height: 1.5; background: none; }
   body { min-height: 0; background: none; }
