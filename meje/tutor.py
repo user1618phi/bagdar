@@ -265,7 +265,8 @@ class Tutor:
 
         pin      a skill the learner chose to study now, overriding the route
         lesson   the learner asked for the lesson instead of the recommended step
-        inspect  the skill whose HMM trace to return (defaults to the current skill)
+        inspect  the skill whose HMM trace to return (defaults to the current skill, or to the
+                 last skill studied while the current one has no steps yet)
         """
         skills = self.pack.skills
         target_set = self._targets(targets)
@@ -310,7 +311,13 @@ class Tutor:
             break
 
         route = self._describe_route(problem, order)
-        focus = inspect or current or (events[-1].skill if events else None)
+        studied = [e.skill for e in events if e.action != "advance"]
+        if inspect:
+            focus = inspect
+        elif current is not None and any(e.action != "advance" for e in by_skill[current]):
+            focus = current
+        else:
+            focus = studied[-1] if studied else current
         state = {
             "pack": {"id": self.pack.id, "title": self.pack.title},
             "targets": sorted(target_set),

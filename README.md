@@ -38,6 +38,41 @@ python -m meje serve --port 8010     # another port
 
 The interface has its own end-to-end check (needs Node, `npm i playwright` and Chrome): `node tools/e2e.mjs` walks every screen at five viewport sizes in both themes and fails on a console error, sideways scrolling, clipped text, a control hidden by the dock, a touch target under 40 px, or a broken flow.
 
+## Sample input and output
+
+`python -m meje demo` shows each algorithm as input, key steps and output. An excerpt:
+
+```text
+1. HIDDEN MARKOV MODEL  -  where is the learner?
+Input: three answers on one skill: ['wrong_unsure', 'correct_unsure', 'correct_sure']
+  answer 1: wrong_unsure
+    prior      [0.500, 0.300, 0.200]
+    likelihood [0.6000, 0.2450, 0.0320]   P(evidence) = 0.3799
+    posterior  [0.790, 0.193, 0.017]   (Bayes' rule: likelihood x prior, normalised)
+    predicted  [0.711, 0.195, 0.094]   (after the learning transition)
+  ...
+Output: belief [0.088, 0.202, 0.710]
+        Viterbi path ['fragile', 'fragile', 'mastered', 'mastered'] (log probability -5.255)
+
+2. MARKOV DECISION PROCESS  -  what should happen next?
+  sweep   1: V = [-1.000, -1.000, 10.000]   largest change = 1.00e+01
+  sweep  47: V = [3.028, 6.512, 10.000]   largest change = 8.68e-11
+Output: policy {'unknown': 'explain', 'fragile': 'practice', 'mastered': 'advance'}
+        on the belief above, Q(b, a) = {explain: 6.54, practice: 7.54, advance: 4.77} -> practice
+        advancing starts to win at P(mastered) >= 0.885
+
+3. A* SEARCH  -  which skill comes next?
+Input: destination ['astar', 'bellman', 'viterbi']; state = set of completed skills; start = nothing completed
+Output: route agents -> formulation -> heuristics -> uninformed -> ucs -> astar -> probability -> bayes -> markov -> hmm -> viterbi -> mdp -> bellman
+        cost 66.9 minutes
+        UCS     cost   66.9  expanded   453
+        Greedy  cost   69.1  expanded    13
+        BFS     cost   66.9  expanded   392
+        A*      cost   66.9  expanded   117
+```
+
+Part 4 of the demo runs one session in which the three work together.
+
 ## What it does
 
 1. **You pick a destination**, for example "Defense day" (A\*, Viterbi, value iteration) or "Final exam".
@@ -189,7 +224,7 @@ A course pack is two kinds of JSON file in `content/`: `skills.json` (skills wit
 - [Technical report](docs/REPORT.md) ([PDF](docs/Meje_Technical_Report.pdf))
 - [Slides](docs/Meje_Slides.pdf)
 - [Demo video, 2 minutes, narrated](docs/media/meje-demo.mp4)
-- [Launch film, 20 seconds](brag-output/brag.mp4), with its [plan](brag-output/brag-plan.md)
+- [Launch film, 20 seconds](docs/media/launch-film.mp4), with its [plan](docs/LAUNCH_FILM.md)
 - [Design decisions and their reasons](docs/DESIGN.md)
 - [Competition](docs/COMPETITION.md)
 - [Defense notes](docs/DEFENSE.md)

@@ -98,6 +98,11 @@ class DecisionTests(unittest.TestCase):
         self.assertNotEqual(state["current"]["skill"], first)
         status = {s["id"]: s["status"] for s in state["skills"]}
         self.assertEqual(status[first], "completed")
+        self.assertEqual(state["trace"]["skill"], first)
+        history.append(answer(state))
+        state = TUTOR.replay(DEFENSE, history)
+        self.assertEqual(state["trace"]["skill"], state["current"]["skill"])
+        self.assertEqual(TUTOR.replay(DEFENSE, history, inspect=first)["trace"]["skill"], first)
 
     def test_hesitant_correct_answers_need_more_evidence(self):
         history, state = [], TUTOR.replay(DEFENSE, [])

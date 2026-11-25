@@ -26,7 +26,7 @@ So the gap is not "more chat". It is a tool that keeps an explicit estimate of w
 | # | Objective | Measure | Result |
 |---|---|---|---|
 | 1 | Three course algorithms work toward one goal, each using another's output | Data flow (section 4), session trace (section 8) | Met |
-| 2 | Each algorithm is correct | Textbook values, brute force, closed forms | 79 of 90 tests pass |
+| 2 | Each algorithm is correct | Textbook values, brute force, closed forms | 90 of 90 tests pass |
 | 3 | Routes are optimal | A* cost equals UCS cost on 5 destinations x 200 belief profiles | 100% |
 | 4 | The decision rule beats simple rules under the stated model, and its behaviour under a wrong model is reported | Payoff on three simulated learner types | Section 9.2 |
 | 5 | Forecasts can be checked | Calibration error: simulated, model right; real logs, model fitted | 0.002; 0.012 |

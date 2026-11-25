@@ -1,4 +1,4 @@
-# Brag plan: Meje
+# Launch film: plan
 
 Made with the brag-slim rules (github.com/latent-spaces/brag): one short film, the real interface, its own soundtrack.
 

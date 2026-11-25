@@ -7,8 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "..");
 const { chromium } = createRequire(process.env.PLAYWRIGHT_FROM || import.meta.url)("playwright");
-const out = join(root, "brag-output");
-const work = join(out, "work");
+const out = join(root, "docs", "media");
+const work = join(here, "work");
 mkdirSync(work, { recursive: true });
 
 const FPS = 30;
@@ -35,16 +35,16 @@ try {
     console.log(`stills in ${work}`);
   } else {
     for (let i = 0; i < FPS * SECONDS; i += 1) await frame(i / FPS, join(work, `frame_${String(i).padStart(4, "0")}.png`));
-    await frame(POSTER_AT, join(out, "brag.jpg"), "jpeg");
+    await frame(POSTER_AT, join(out, "launch-film.jpg"), "jpeg");
     await frame(POSTER_AT, join(work, "poster.png"));
     copyFileSync(join(work, "poster.png"), join(work, "frame_0000.png"));
     const music = spawnSync(process.env.PYTHON || "python3", [join(here, "music.py"), join(work, "music.wav")], { stdio: "inherit" });
     if (music.status !== 0) throw new Error("music synthesis failed");
     const encode = spawnSync("ffmpeg", ["-y", "-framerate", String(FPS), "-i", join(work, "frame_%04d.png"), "-i", join(work, "music.wav"),
       "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-preset", "slow", "-c:a", "aac", "-b:a", "192k",
-      "-movflags", "+faststart", "-shortest", join(out, "brag.mp4")], { stdio: "ignore" });
+      "-movflags", "+faststart", "-shortest", join(out, "launch-film.mp4")], { stdio: "ignore" });
     if (encode.status !== 0) throw new Error("ffmpeg failed");
-    console.log(`saved ${join(out, "brag.mp4")}`);
+    console.log(`saved ${join(out, "launch-film.mp4")}`);
   }
 } finally {
   await browser.close();
