@@ -2,7 +2,6 @@ docs/media
 docs/*.pdf
 docs/*.md
 docs/slides.html
-brag-output
 tools
 tests
 data
